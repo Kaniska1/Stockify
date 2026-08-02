@@ -14,6 +14,9 @@ import {
   removeWatchlistStock,
 } from "../lib/watchlist";
 
+import {
+  getMarketQuotes,
+} from "../lib/market";
 import { STOCKS } from '../data/stocks';
 import { useAuth } from './AuthContext';
 import { useNotifications } from './NotificationContext';
@@ -80,6 +83,7 @@ interface AppContextValue {
     {
       change: number;
       changePercent: number;
+      previousClose: number;
     }
   >;
 
@@ -114,6 +118,7 @@ interface AppContextValue {
   ) => Promise<void>;
 
   refreshData: () => Promise<void>;
+  refreshMarketData: () => Promise<void>;
   isInWatchlist: (
   stockId: string
 ) => boolean;
@@ -296,78 +301,96 @@ export function AppProvider({
     void refreshData();
   }, [refreshData]);
 
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setLivePrices(previousPrices => {
-        const nextPrices = {
-          ...previousPrices,
-        };
+  const refreshMarketData =
+    useCallback(async () => {
+      if (!token) return;
 
-        STOCKS.forEach(stock => {
-          const volatility =
-            stock.changePercent !== 0
-              ? Math.abs(
-                  stock.changePercent
-                ) / 100
-              : 0.002;
-
-          const noise =
-            (Math.random() * 2 - 1) *
-            volatility *
-            0.3;
-
-          nextPrices[stock.id] = Math.max(
-            Number(
-              (
-                nextPrices[stock.id] *
-                (1 + noise)
-              ).toFixed(2)
-            ),
-            0.01
-          );
-        });
-
-        return nextPrices;
-      });
-    }, 3000);
-
-    return () =>
-      window.clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    setLiveChanges(() =>
-      Object.fromEntries(
-        STOCKS.map(stock => {
-          const price =
-            livePrices[stock.id] ??
-            stock.currentPrice;
-
-          const change = Number(
-            (
-              price - stock.previousClose
-            ).toFixed(2)
+      try {
+        const response =
+          await getMarketQuotes(
+            token,
+            STOCKS.map(
+              stock => stock.symbol
+            )
           );
 
-          const changePercent = Number(
-            (
-              (change /
-                stock.previousClose) *
-              100
-            ).toFixed(2)
-          );
+        const priceEntries:
+          [string, number][] = [];
 
-          return [
-            stock.id,
+        const changeEntries:
+          [
+            string,
             {
-              change,
-              changePercent,
+              change: number;
+              changePercent: number;
             },
-          ];
-        })
-      )
-    );
-  }, [livePrices]);
+          ][] = [];
+
+        response.quotes.forEach(
+          quote => {
+            const stock =
+              STOCKS.find(
+                item =>
+                  item.symbol.toUpperCase() ===
+                  quote.symbol.toUpperCase()
+              );
+
+            if (!stock) return;
+
+            priceEntries.push([
+              stock.id,
+              quote.currentPrice,
+            ]);
+
+            changeEntries.push([
+              stock.id,
+              {
+                change: quote.change,
+                changePercent: quote.changePercent,
+                previousClose: quote.previousClose,
+              },
+            ]);
+          }
+        );
+
+        setLivePrices(previous => ({
+          ...previous,
+          ...Object.fromEntries(
+            priceEntries
+          ),
+        }));
+
+        setLiveChanges(previous => ({
+          ...previous,
+          ...Object.fromEntries(
+            changeEntries
+          ),
+        }));
+      } catch (error) {
+        console.error(
+          "Unable to refresh market data:",
+          error
+        );
+      }
+    }, [token]);
+
+  useEffect(() => {
+    void refreshMarketData();
+
+    if (!token) return;
+
+    const interval =
+      window.setInterval(() => {
+        void refreshMarketData();
+      }, 30_000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [
+    token,
+    refreshMarketData,
+  ]);
 
   const portfolioValue = useMemo(
     () =>
@@ -399,28 +422,30 @@ export function AppProvider({
     portfolioValue - totalInvested;
 
   const dayPnl = useMemo(
-    () =>
-      holdings.reduce((sum, holding) => {
-        const stock = STOCKS.find(
-          item =>
-            item.id === holding.stockId
-        );
+  () =>
+    holdings.reduce((sum, holding) => {
+      const currentPrice =
+        livePrices[holding.stockId];
 
-        if (!stock) return sum;
+      const change =
+        liveChanges[holding.stockId];
 
-        const currentPrice =
-          livePrices[holding.stockId] ??
-          stock.currentPrice;
+      if (
+        currentPrice === undefined ||
+        !change
+      ) {
+        return sum;
+      }
 
-        return (
-          sum +
-          holding.quantity *
-            (currentPrice -
-              stock.previousClose)
-        );
-      }, 0),
-    [holdings, livePrices]
-  );
+      return (
+        sum +
+        holding.quantity *
+          (currentPrice -
+            change.previousClose)
+      );
+    }, 0),
+  [holdings, livePrices, liveChanges]
+);
 
   const getHolding = useCallback(
     (stockId: string) =>
@@ -678,6 +703,7 @@ export function AppProvider({
         toggleWatchlist,
         depositFunds,
         refreshData,
+        refreshMarketData,
       }}
     >
       {children}

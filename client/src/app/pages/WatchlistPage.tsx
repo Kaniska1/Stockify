@@ -437,7 +437,7 @@ export default function WatchlistPage() {
           color: "#4d4d4d",
         }}
       >
-        Prices currently use Stockify’s simulated market feed.
+        Quotes are provided by Finnhub and may vary by market status and data entitlement.
       </p>
     </div>
   );

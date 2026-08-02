@@ -10,6 +10,7 @@ import transactionRoutes from "./routes/transaction.js";
 import watchlistRoutes from "./routes/watchlist.js";
 import notificationRoutes from "./routes/notification.js";
 import aiRoutes from "./routes/ai.js";
+import marketRoutes from "./routes/market.js";
 
 // Load environment variables
 dotenv.config();
@@ -32,7 +33,7 @@ app.use("/api/watchlist", watchlistRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/ai", aiRoutes);
-
+app.use("/api/market", marketRoutes);
 // Health check
 app.get("/", (req: Request, res: Response) => {
   res.status(200).json({
