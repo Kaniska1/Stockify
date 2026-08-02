@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import {
   LayoutDashboard, TrendingUp, BarChart3, Briefcase,
   History, Zap, LogOut, Menu, X, Search,
-  Wallet, ChevronRight, Bell, Plus, Bookmark,
+  Wallet, ChevronRight, Bell, Plus, Bookmark, Bot,
 } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
 import { useNotifications } from '../context/NotificationContext';
@@ -43,6 +43,11 @@ const NAV_ITEMS: NavItem[] = [
     label: "Transactions",
     path: "/transactions",
     icon: <History size={18} />,
+  },
+  {
+    label: "AI Assistant",
+    path: "/assistant",
+    icon: <Bot size={18} />,
   },
   {
     label: "Analysis",
