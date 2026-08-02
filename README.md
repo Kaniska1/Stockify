@@ -1,245 +1,302 @@
-# Stockify
+<div align="center">
 
-Stockify is a modern stock market dashboard and portfolio simulator built with React, TypeScript, and Vite.
+# 📈 Stockify
 
-It provides a rich front-end experience for exploring market data, viewing stock details, managing a virtual portfolio, tracking transactions, and interacting with a polished financial UI inspired by a Figma-based workflow.
+### AI-Powered Stock Portfolio & Market Analysis Platform
 
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Available Scripts](#available-scripts)
-- [How the App Is Organized](#how-the-app-is-organized)
-- [Data and State Management](#data-and-state-management)
-- [Styling and Theming](#styling-and-theming)
-- [Attributions](#attributions)
-- [Design Source](#design-source)
+Real-time stock tracking, intelligent portfolio insights, AI-powered investment assistant, watchlists, live market data, and portfolio analytics — all in one modern platform.
 
 ---
 
-## Overview
+![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
+![React](https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js)
+![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss)
+![Gemini AI](https://img.shields.io/badge/Gemini-AI-8E75FF?style=for-the-badge&logo=google)
 
-Stockify is a single-page web app focused on stock discovery and portfolio interaction.  
-The project appears to be generated from a Figma-to-code flow and then organized into a maintainable React structure.
-
-From the current codebase, the app includes:
-
-- Authentication flows (login and signup)
-- Dashboard and market analysis views
-- Stock list and detailed stock pages
-- Portfolio and transaction tracking screens
-- Profile and account-oriented screens
-- Command palette and wallet funding modal for quick actions
+</div>
 
 ---
 
-## Features
+# ✨ Overview
 
-### Core Product Screens
+Stockify is a full-stack stock portfolio management platform that enables users to monitor investments, manage portfolios, analyze market trends, and receive AI-powered investment insights.
 
-- **Login page** (`src/app/pages/LoginPage.tsx`)
-- **Signup page** (`src/app/pages/SignupPage.tsx`)
-- **Dashboard page** (`src/app/pages/DashboardPage.tsx`)
-- **Stocks listing page** (`src/app/pages/StocksPage.tsx`)
-- **Stock detail page** (`src/app/pages/StockDetailPage.tsx`)
-- **Portfolio page** (`src/app/pages/PortfolioPage.tsx`)
-- **Transactions page** (`src/app/pages/TransactionsPage.tsx`)
-- **Market analysis page** (`src/app/pages/MarketAnalysisPage.tsx`)
-- **Profile page** (`src/app/pages/ProfilePage.tsx`)
+Unlike traditional CRUD portfolio trackers, Stockify combines:
 
-### Key UI Components
-
-- Reusable app layout (`src/app/components/Layout.tsx`)
-- Command palette for quick navigation/actions (`src/app/components/CommandPalette.tsx`)
-- Wallet funding modal (`src/app/components/FundWalletModal.tsx`)
-- Extensive reusable UI primitives in `src/app/components/ui`
-
-### State and Data
-
-- Authentication context (`src/app/context/AuthContext.tsx`)
-- App-level state context (`src/app/context/AppContext.tsx`)
-- Local stock dataset (`src/app/data/stocks.ts`)
+- 📊 Live Market Data
+- 🤖 AI Portfolio Analysis
+- 💬 AI Investment Assistant
+- 📈 Real-time Portfolio Tracking
+- ⭐ Watchlists
+- 🔔 Smart Notifications
+- 💼 Portfolio Analytics
 
 ---
 
-## Tech Stack
+# 🚀 Features
 
-### Frameworks and Build Tools
+## 🔐 Authentication
 
-- **React 18** (peer dependency)
-- **TypeScript**
-- **Vite 6**
-
-### UI and Styling
-
-- **Tailwind CSS v4** (`tailwindcss`, `@tailwindcss/vite`)
-- **Radix UI** primitives
-- **MUI** (`@mui/material`, `@mui/icons-material`)
-- **Emotion** (`@emotion/react`, `@emotion/styled`)
-- Utility libraries: `clsx`, `class-variance-authority`, `tailwind-merge`
-
-### Charts, Motion, and Interaction
-
-- **Recharts** for charts
-- **motion** for animations
-- **react-router** for routing
-- Additional helpers: `sonner`, `react-hook-form`, `embla-carousel-react`, `cmdk`, and more
-
-### Package Management
-
-- `pnpm-lock.yaml` is present
-- You can run the project with npm commands (shown below)
+- JWT Authentication
+- Secure Password Hashing
+- Protected Routes
+- User Profiles
+- Session Persistence
 
 ---
 
-## Project Structure
+## 📈 Market
+
+- Live Stock Prices (Finnhub)
+- Market Movers
+- Price Change Tracking
+- Live Gain/Loss
+- Stock Search
+- Detailed Stock Pages
+
+---
+
+## 💼 Portfolio
+
+- Buy & Sell Stocks
+- Portfolio Holdings
+- Average Purchase Price
+- Total Investment
+- Profit & Loss
+- Daily P&L
+- Portfolio Valuation
+
+---
+
+## ⭐ Watchlist
+
+- Add Stocks
+- Remove Stocks
+- Live Price Updates
+- Quick Access
+
+---
+
+## 🤖 AI Features
+
+### AI Investment Assistant
+
+Ask questions like:
+
+- Should I diversify?
+- Explain P/E Ratio
+- What are the risks in my portfolio?
+- Compare two companies
+- Investment education
+
+---
+
+### AI Portfolio Analyzer
+
+Automatically evaluates:
+
+- Portfolio Health Score
+- Diversification Score
+- Cash Utilization
+- Concentration Risk
+- Strengths
+- Weaknesses
+- Investment Suggestions
+- Risk Assessment
+
+Powered by **Google Gemini AI**
+
+---
+
+## 🔔 Notifications
+
+- Buy Notifications
+- Sell Notifications
+- System Alerts
+
+---
+
+## 📜 Transactions
+
+- Complete Transaction History
+- Buy/Sell Records
+- Order Details
+- Timestamp Tracking
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Lucide Icons
+- React Router
+- Sonner
+
+## Backend
+
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT
+- bcrypt
+
+## APIs
+
+- Finnhub API
+- Google Gemini AI
+
+---
+
+# 🧱 Architecture
 
 ```text
-Stockify/
-├── .gitignore
-├── ATTRIBUTIONS.md
-├── README.md
-├── default_shadcn_theme.css
-├── guidelines/
-│   └── Guidelines.md
-├── index.html
-├── package.json
-├── pnpm-lock.yaml
-├── pnpm-workspace.yaml
-├── postcss.config.mjs
-├── vite.config.ts
-└── src/
-    ├── main.tsx
-    ├── app/
-    │   ├── App.tsx
-    │   ├── components/
-    │   │   ├── CommandPalette.tsx
-    │   │   ├── FundWalletModal.tsx
-    │   │   ├── Layout.tsx
-    │   │   ├── figma/
-    │   │   └── ui/
-    │   ├── context/
-    │   │   ├── AppContext.tsx
-    │   │   └── AuthContext.tsx
-    │   ├── data/
-    │   │   └── stocks.ts
-    │   └── pages/
-    │       ├── DashboardPage.tsx
-    │       ├── LoginPage.tsx
-    │       ├── MarketAnalysisPage.tsx
-    │       ├── PortfolioPage.tsx
-    │       ├── ProfilePage.tsx
-    │       ├── SignupPage.tsx
-    │       ├── StockDetailPage.tsx
-    │       ├── StocksPage.tsx
-    │       └── TransactionsPage.tsx
-    ├── imports/
-    │   └── pasted_text/
-    └── styles/
-        ├── fonts.css
-        ├── globals.css
-        ├── index.css
-        ├── tailwind.css
-        └── theme.css
+                    React Frontend
+                          │
+            ┌─────────────┼─────────────┐
+            │             │             │
+      Authentication   Portfolio      Markets
+            │             │             │
+            └─────────────┼─────────────┘
+                          │
+                    Express Backend
+                          │
+      ┌───────────────────┼───────────────────┐
+      │                   │                   │
+   MongoDB            Finnhub API        Gemini AI
+      │                   │                   │
+ Users & Data       Live Market Data    AI Analysis
 ```
 
 ---
 
-## Getting Started
+# 📂 Project Structure
 
-### Prerequisites
-
-- **Node.js** (recommended: current LTS)
-- **npm** or **pnpm**
-
-### Install Dependencies
-
-```bash
-npm install
+```text
+Stockify
+│
+├── client
+│   ├── src
+│   │   ├── app
+│   │   ├── components
+│   │   ├── context
+│   │   ├── hooks
+│   │   ├── lib
+│   │   ├── pages
+│   │   └── styles
+│
+├── server
+│   ├── controllers
+│   ├── middleware
+│   ├── models
+│   ├── routes
+│   ├── services
+│   ├── utils
+│   └── config
 ```
 
-### Run Development Server
+---
+
+# ⚡ Getting Started
+
+## Clone Repository
 
 ```bash
+git clone https://github.com/Kaniska1/Stockify.git
+```
+
+```bash
+cd Stockify
+```
+
+---
+
+## Backend
+
+```bash
+cd server
+npm install
 npm run dev
 ```
 
-By default, Vite serves the app at:
+---
 
-- `http://localhost:5173`
-
-### Build for Production
+## Frontend
 
 ```bash
-npm run build
+cd client
+npm install
+npm run dev
 ```
 
 ---
 
-## Available Scripts
+# 🔑 Environment Variables
 
-Defined in `package.json`:
+## Backend
 
-- `npm run dev` — Starts Vite development server
-- `npm run build` — Creates a production build
+```env
+PORT=
 
----
+MONGODB_URI=
 
-## How the App Is Organized
+JWT_SECRET=
 
-- `src/main.tsx` bootstraps the React app.
-- `src/app/App.tsx` acts as the app shell and route-level composition root.
-- `src/app/pages` contains page-level screens.
-- `src/app/components` contains reusable app and UI components.
-- `src/app/context` encapsulates shared auth and app state.
-- `src/app/data/stocks.ts` provides stock-related source data for UI rendering.
-- `src/styles` contains global styles, theme variables, and Tailwind entry files.
+GEMINI_API_KEY=
+GEMINI_MODEL=
 
-This separation keeps page composition, shared state, and reusable UI concerns clean and scalable.
+FINNHUB_API_KEY=
+```
 
 ---
 
-## Data and State Management
+# 📸 Screenshots
 
-Stockify currently appears to rely on local/application state and static data for core interactions:
-
-- Authentication/session behavior is managed via `AuthContext`.
-- Cross-feature app state is managed via `AppContext`.
-- Stock records and market demo data come from `src/app/data/stocks.ts`.
-
-If you later integrate real market APIs, these are natural extension points for async fetching, caching, and persistence.
+Coming Soon
 
 ---
 
-## Styling and Theming
+# 🚧 Upcoming Features
 
-Styling combines utility-first and component-driven approaches:
-
-- Tailwind setup in `src/styles/tailwind.css`
-- Theme-level CSS tokens/system in `src/styles/theme.css`
-- Additional font/global files in `src/styles/`
-- `default_shadcn_theme.css` indicates shadcn-style theme compatibility
-
----
-
-## Attributions
-
-See [`ATTRIBUTIONS.md`](./ATTRIBUTIONS.md) for third-party and generated-content attribution details.
+- 📊 TradingView Charts
+- 📰 Live Market News
+- 📄 PDF Portfolio Reports
+- 🤖 AI Stock Research
+- 🔍 Advanced Stock Screener
+- 📈 Portfolio Allocation Charts
+- 🌙 Redesigned Premium UI
+- 📱 Progressive Web App
+- 🔔 Price Alerts
+- 🌍 Multi-Currency Support
 
 ---
 
-## Optional Next Improvements
+# 🤝 Contributing
 
-You can further improve this README by adding:
+Contributions are welcome.
 
-- Screenshots/GIF previews
-- Architecture diagram
-- Deployment steps (Vercel/Netlify)
-- Environment variable template
-- Contribution guidelines
-- License section
+Feel free to fork the repository, create a feature branch, and submit a pull request.
+
+---
+
+# 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+<div align="center">
+
+### Built with ❤️ by Kaniska Mitra
+
+⭐ Star the repository if you found it useful!
+
+</div>
