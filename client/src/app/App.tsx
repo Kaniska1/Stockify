@@ -17,6 +17,7 @@ import MarketAnalysisPage from './pages/MarketAnalysisPage';
 import ProfilePage from './pages/ProfilePage';
 import WatchlistPage from "./pages/WatchlistPage";
 import AIAssistantPage from "./pages/AIAssistantPage";
+import PortfolioAnalyzerPage from "./pages/PortfolioAnalyzerPage";
 
 function AuthLoadingScreen() {
   return (
@@ -59,6 +60,7 @@ function AppRoutes() {
       <Route path="/watchlist" element={<ProtectedRoute><Layout><WatchlistPage /></Layout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Layout><ProfilePage /></Layout></ProtectedRoute>} />
       <Route path="/assistant" element={<ProtectedRoute><Layout><AIAssistantPage /></Layout></ProtectedRoute>} />
+      <Route path="/portfolio-analyzer" element={<ProtectedRoute><Layout><PortfolioAnalyzerPage /></Layout></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
