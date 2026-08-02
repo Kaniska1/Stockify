@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
@@ -81,21 +82,24 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppProvider>
-          <AppRoutes />
-          <Toaster
-            theme="dark"
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: '#1a1a1a',
-                border: '1px solid #333333',
-                color: '#e7fef6',
-                fontSize: '13px',
-              },
-            }}
-          />
-        </AppProvider>
+        <NotificationProvider>
+          <AppProvider>
+            <AppRoutes />
+
+            <Toaster
+              theme="dark"
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: "#1a1a1a",
+                  border: "1px solid #333333",
+                  color: "#e7fef6",
+                  fontSize: "13px",
+                },
+              }}
+            />
+          </AppProvider>
+        </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>
   );

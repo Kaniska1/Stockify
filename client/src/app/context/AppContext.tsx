@@ -16,6 +16,7 @@ import {
 
 import { STOCKS } from '../data/stocks';
 import { useAuth } from './AuthContext';
+import { useNotifications } from './NotificationContext';
 
 import {
   getPortfolio,
@@ -163,6 +164,8 @@ export function AppProvider({
     token,
     refreshUser,
   } = useAuth();
+
+  const { refreshNotifications } = useNotifications();
 
   const [holdings, setHoldings] =
     useState<Holding[]>([]);
@@ -454,8 +457,9 @@ export function AppProvider({
           item.toUpperCase()
         )
       );
+      await refreshNotifications();
     },
-    [token]
+    [token, refreshNotifications]
   );
 
   const removeFromWatchlist = useCallback(
@@ -475,8 +479,9 @@ export function AppProvider({
           item.toUpperCase()
         )
       );
+      await refreshNotifications();
     },
-    [token]
+    [token, refreshNotifications]
   );
 
   const toggleWatchlist = useCallback(
@@ -536,6 +541,7 @@ export function AppProvider({
       await Promise.all([
         refreshData(),
         refreshUser(),
+        refreshNotifications(),
       ]);
     },
     [
@@ -543,6 +549,7 @@ export function AppProvider({
       livePrices,
       refreshData,
       refreshUser,
+      refreshNotifications,
     ]
   );
 
@@ -607,6 +614,7 @@ export function AppProvider({
       await Promise.all([
         refreshData(),
         refreshUser(),
+        refreshNotifications(),
       ]);
     },
     [
@@ -615,6 +623,7 @@ export function AppProvider({
       livePrices,
       refreshData,
       refreshUser,
+      refreshNotifications,
     ]
   );
 
@@ -638,9 +647,12 @@ export function AppProvider({
         amount
       );
 
-      await refreshUser();
+      await Promise.all([
+        refreshUser(),
+        refreshNotifications(),
+      ]);
     },
-    [token, refreshUser]
+    [token, refreshUser, refreshNotifications]
   );
 
   return (

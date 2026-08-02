@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import Transaction from "../models/Transaction.js";
 import { AuthRequest } from "../middleware/auth.js";
 import { getUserHoldings } from "../utils/portfolio.js";
+import { createNotification } from "../utils/createNotification.js";
 
 export const getTransactions = async (
   req: AuthRequest,
@@ -132,6 +133,33 @@ export const addTransaction = async (
     }
 
     await user.save({ session });
+
+    await createNotification({
+      userId: req.userId!,
+      title:
+        cleanType === "BUY"
+          ? `Bought ${cleanSymbol}`
+          : `Sold ${cleanSymbol}`,
+
+      message:
+        cleanType === "BUY"
+          ? `You bought ${numericQuantity} shares of ${cleanSymbol} for $${total.toFixed(2)}.`
+          : `You sold ${numericQuantity} shares of ${cleanSymbol} for $${total.toFixed(2)}.`,
+
+      type: "TRADE",
+
+      link: `/stocks/${cleanSymbol.toLowerCase()}`,
+
+      metadata: {
+        symbol: cleanSymbol,
+        quantity: numericQuantity,
+        price: numericPrice,
+        total,
+        transactionType: cleanType,
+      },
+
+      session,
+    });
 
     const [transaction] = await Transaction.create(
       [

@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 
 import User from "../models/User.js";
 import { AuthRequest } from "../middleware/auth.js";
+import { createNotification } from "../utils/createNotification.js";
 
 const createToken = (userId: string): string => {
   const secret = process.env.JWT_SECRET;
@@ -275,6 +276,18 @@ export const updateProfile = async (
     }
 
     await user.save();
+
+    await createNotification({
+      userId: user.id,
+      title: "Wallet credited",
+      message: `$${amount.toFixed(2)} was added to your Stockify wallet.`,
+      type: "WALLET",
+      link: "/profile",
+      metadata: {
+        amount,
+        walletBalance: user.walletBalance,
+      },
+    });
 
     return res.status(200).json({
       user: formatUser(user),

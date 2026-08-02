@@ -5,6 +5,8 @@ import {
   History, Zap, LogOut, Menu, X, Search,
   Wallet, ChevronRight, Bell, Plus, Bookmark,
 } from 'lucide-react';
+import NotificationDropdown from './NotificationDropdown';
+import { useNotifications } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import CommandPalette from './CommandPalette';
@@ -59,8 +61,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
+  const [
+    notificationOpen,
+    setNotificationOpen,
+  ] = useState(false);
   const { user, logout } = useAuth();
   const { walletBalance } = useApp();
+  const { unreadCount } = useNotifications();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -219,13 +226,48 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
 
           <div className="flex items-center gap-2 ml-auto">
-            <button
-              className="p-2 rounded-lg relative"
-              style={{ color: '#999999' }}
-            >
-              <Bell size={17} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                className="p-2 rounded-lg relative transition-colors"
+                style={{
+                  color: notificationOpen
+                    ? '#f6f609'
+                    : '#999999',
+
+                  background: notificationOpen
+                    ? 'rgba(246,246,9,0.08)'
+                    : 'transparent',
+                }}
+                onClick={() =>
+                  setNotificationOpen(prev => !prev)
+                }
+                title="Notifications"
+              >
+                <Bell size={17} />
+
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 min-w-[17px] h-[17px] rounded-full flex items-center justify-center"
+                    style={{
+                      padding: '0 4px',
+                      background: '#f43f5e',
+                      border: '2px solid #111111',
+                      color: 'white',
+                      fontSize: '9px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              <NotificationDropdown
+                open={notificationOpen}
+                onClose={() => setNotificationOpen(false)}
+              />
+            </div>
             <Link to="/profile">
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"

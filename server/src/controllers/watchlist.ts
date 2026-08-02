@@ -2,6 +2,7 @@ import type { Response } from "express";
 
 import Watchlist from "../models/Watchlist.js";
 import type { AuthRequest } from "../middleware/auth.js";
+import { createNotification } from "../utils/createNotification.js";
 
 export const getWatchlist = async (
   req: AuthRequest,
@@ -71,6 +72,18 @@ export const addStock = async (
       });
     }
 
+    await createNotification({
+      userId: req.userId!,
+      title: `${symbol} added to watchlist`,
+      message: `${symbol} is now being tracked in your watchlist.`,
+      type: "WATCHLIST",
+      link: "/watchlist",
+      metadata: {
+        symbol,
+        action: "ADD",
+      },
+    });
+
     return res.status(200).json({
       stocks: watchlist.stocks,
     });
@@ -120,6 +133,18 @@ export const removeStock = async (
         message: "Watchlist not found",
       });
     }
+
+    await createNotification({
+      userId: req.userId!,
+      title: `${symbol} removed from watchlist`,
+      message: `${symbol} was removed from your watchlist.`,
+      type: "WATCHLIST",
+      link: "/watchlist",
+      metadata: {
+        symbol,
+        action: "REMOVE",
+      },
+    });
 
     return res.status(200).json({
       stocks: watchlist.stocks,
