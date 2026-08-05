@@ -1,200 +1,728 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router';
-import { TrendingUp, TrendingDown, Activity, BarChart2 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar, Cell } from 'recharts';
-import { STOCKS, SECTORS } from '../data/stocks';
-import { useApp } from '../context/AppContext';
+import { useMemo } from "react";
+import { Link } from "react-router";
+import { getStockLogo } from "../lib/getStockLogo";
+
+import {
+  Activity,
+  ArrowUpRight,
+  BarChart2,
+  ChevronRight,
+  Radar,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  PolarAngleAxis,
+  PolarGrid,
+  Radar as RechartsRadar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+import { STOCKS, SECTORS } from "../data/stocks";
+import { useApp } from "../context/AppContext";
+
+function formatVolume(value: number): string {
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(1)}B`;
+  }
+
+  return `${value.toFixed(0)}M`;
+}
 
 export default function MarketAnalysisPage() {
   const { livePrices, liveChanges } = useApp();
 
-  const stocksWithLive = useMemo(() => STOCKS.map(s => ({
-    ...s,
-    livePrice: livePrices[s.id] ?? s.currentPrice,
-    liveChange: liveChanges[s.id] ?? { change: s.change, changePercent: s.changePercent },
-  })), [livePrices, liveChanges]);
+  const stocksWithLiveData = useMemo(
+    () =>
+      STOCKS.map((stock) => ({
+        ...stock,
 
-  const sorted = useMemo(() => [...stocksWithLive].sort((a, b) => b.liveChange.changePercent - a.liveChange.changePercent), [stocksWithLive]);
-  const gainers = sorted.slice(0, 8);
-  const losers = sorted.slice(-8).reverse();
+        livePrice:
+          livePrices[stock.id] ??
+          stock.currentPrice,
 
-  const advancing = stocksWithLive.filter(s => s.liveChange.changePercent >= 0).length;
-  const declining = stocksWithLive.length - advancing;
+        liveChange:
+          liveChanges[stock.id] ?? {
+            change: stock.change,
+            changePercent:
+              stock.changePercent,
+          },
+      })),
+    [livePrices, liveChanges]
+  );
 
-  const sectorPerf = useMemo(() => SECTORS.map(sector => {
-    const stocks = stocksWithLive.filter(s => s.sector === sector);
-    const avgChange = stocks.reduce((sum, s) => sum + s.liveChange.changePercent, 0) / stocks.length;
-    return { sector: sector.replace(' ', '\n'), fullSector: sector, change: +avgChange.toFixed(2), count: stocks.length };
-  }).sort((a, b) => b.change - a.change), [stocksWithLive]);
+  const sortedStocks = useMemo(
+    () =>
+      [...stocksWithLiveData].sort(
+        (first, second) =>
+          second.liveChange.changePercent -
+          first.liveChange.changePercent
+      ),
+    [stocksWithLiveData]
+  );
 
-  const radarData = sectorPerf.map(s => ({
-    sector: s.fullSector,
-    performance: Math.max(0, s.change + 5),
-  }));
+  const gainers = sortedStocks.slice(0, 6);
 
-  const totalVolume = STOCKS.reduce((sum, s) => sum + s.volume, 0);
+  const losers = sortedStocks
+    .slice(-6)
+    .reverse();
+
+  const advancing = stocksWithLiveData.filter(
+    (stock) =>
+      stock.liveChange.changePercent >= 0
+  ).length;
+
+  const declining =
+    stocksWithLiveData.length - advancing;
+
+  const unchanged = stocksWithLiveData.filter(
+    (stock) =>
+      stock.liveChange.changePercent === 0
+  ).length;
+
+  const advancingPercent =
+    STOCKS.length > 0
+      ? (advancing / STOCKS.length) * 100
+      : 0;
+
+  const decliningPercent =
+    STOCKS.length > 0
+      ? (declining / STOCKS.length) * 100
+      : 0;
+
+  const marketTone =
+    advancingPercent >= 65
+      ? "Bullish"
+      : advancingPercent >= 45
+        ? "Mixed"
+        : "Bearish";
+
+  const sectorPerformance = useMemo(
+    () =>
+      SECTORS.map((sector) => {
+        const sectorStocks =
+          stocksWithLiveData.filter(
+            (stock) =>
+              stock.sector === sector
+          );
+
+        const averageChange =
+          sectorStocks.length > 0
+            ? sectorStocks.reduce(
+                (sum, stock) =>
+                  sum +
+                  stock.liveChange
+                    .changePercent,
+                0
+              ) / sectorStocks.length
+            : 0;
+
+        return {
+          sector,
+          change: Number(
+            averageChange.toFixed(2)
+          ),
+          count: sectorStocks.length,
+        };
+      }).sort(
+        (first, second) =>
+          second.change - first.change
+      ),
+    [stocksWithLiveData]
+  );
+
+  const radarData = sectorPerformance.map(
+    (sector) => ({
+      sector: sector.sector,
+      performance: Math.max(
+        0,
+        sector.change + 5
+      ),
+    })
+  );
+
+  const totalVolume = STOCKS.reduce(
+    (sum, stock) =>
+      sum + stock.volume,
+    0
+  );
+
+  const strongestSector =
+    sectorPerformance[0];
+
+  const weakestSector =
+    sectorPerformance[
+      sectorPerformance.length - 1
+    ];
 
   return (
-    <div className="p-6 space-y-5">
-      <div>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#e7fef6', letterSpacing: '-0.02em' }}>Market Analysis</h1>
-        <p style={{ fontSize: '13px', color: '#808080', marginTop: '2px' }}>Real-time market overview</p>
-      </div>
+    <div className="market-analysis-page">
+      <section className="market-analysis-heading">
+        <div>
+          <span className="market-analysis-eyebrow">
+            LIVE MARKET INTELLIGENCE
+          </span>
 
-      {/* Market summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Stocks', value: STOCKS.length.toString(), icon: <BarChart2 size={16} />, color: '#f6f609', bg: 'rgba(246,246,9,0.1)' },
-          { label: 'Advancing', value: advancing.toString(), icon: <TrendingUp size={16} />, color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
-          { label: 'Declining', value: declining.toString(), icon: <TrendingDown size={16} />, color: '#f43f5e', bg: 'rgba(244,63,94,0.1)' },
-          { label: 'Total Volume', value: `${totalVolume.toFixed(0)}M`, icon: <Activity size={16} />, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-        ].map(s => (
-          <div key={s.label} className="p-4 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-            <div className="flex items-center justify-between mb-3">
-              <span style={{ fontSize: '12px', color: '#808080' }}>{s.label}</span>
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: s.bg }}>
-                <span style={{ color: s.color }}>{s.icon}</span>
+          <h1>Market Analysis</h1>
+
+          <p>
+            Track market breadth, sector
+            momentum and the strongest daily
+            movers across Stockify.
+          </p>
+        </div>
+
+        <Link
+          to="/stocks"
+          className="market-analysis-action"
+        >
+          Browse markets
+          <ArrowUpRight size={15} />
+        </Link>
+      </section>
+
+      <section className="market-analysis-summary">
+        <article>
+          <span className="market-analysis-summary-icon">
+            <BarChart2 size={17} />
+          </span>
+
+          <div>
+            <span>Total stocks</span>
+
+            <strong className="sf-number">
+              {STOCKS.length}
+            </strong>
+
+            <small>
+              Available market instruments
+            </small>
+          </div>
+        </article>
+
+        <article>
+          <span className="market-analysis-summary-icon market-analysis-positive-icon">
+            <TrendingUp size={17} />
+          </span>
+
+          <div>
+            <span>Advancing</span>
+
+            <strong className="sf-number positive">
+              {advancing}
+            </strong>
+
+            <small>
+              {advancingPercent.toFixed(0)}%
+              of tracked stocks
+            </small>
+          </div>
+        </article>
+
+        <article>
+          <span className="market-analysis-summary-icon market-analysis-negative-icon">
+            <TrendingDown size={17} />
+          </span>
+
+          <div>
+            <span>Declining</span>
+
+            <strong className="sf-number negative">
+              {declining}
+            </strong>
+
+            <small>
+              {decliningPercent.toFixed(0)}%
+              of tracked stocks
+            </small>
+          </div>
+        </article>
+
+        <article>
+          <span className="market-analysis-summary-icon market-analysis-volume-icon">
+            <Activity size={17} />
+          </span>
+
+          <div>
+            <span>Total volume</span>
+
+            <strong className="sf-number">
+              {formatVolume(totalVolume)}
+            </strong>
+
+            <small>
+              Combined reported volume
+            </small>
+          </div>
+        </article>
+      </section>
+
+      <section className="market-breadth-panel">
+        <div className="market-breadth-copy">
+          <span>MARKET BREADTH</span>
+
+          <h2>
+            Today&apos;s market is{" "}
+            <strong
+              className={`market-tone-${marketTone.toLowerCase()}`}
+            >
+              {marketTone.toLowerCase()}
+            </strong>
+          </h2>
+
+          <p>
+            {advancing} stocks are trading
+            higher, {declining} are trading
+            lower and {unchanged} are
+            unchanged.
+          </p>
+        </div>
+
+        <div className="market-breadth-visual">
+          <div className="market-breadth-legend">
+            <span>
+              <i className="market-breadth-green" />
+              Advancing
+              <strong className="sf-number">
+                {advancing}
+              </strong>
+            </span>
+
+            <span>
+              <i className="market-breadth-red" />
+              Declining
+              <strong className="sf-number">
+                {declining}
+              </strong>
+            </span>
+          </div>
+
+          <div className="market-breadth-track">
+            <span
+              className="market-breadth-advance"
+              style={{
+                width: `${advancingPercent}%`,
+              }}
+            />
+
+            <span
+              className="market-breadth-decline"
+              style={{
+                width: `${decliningPercent}%`,
+              }}
+            />
+          </div>
+
+          <div className="market-breadth-percentages">
+            <span className="positive sf-number">
+              {advancingPercent.toFixed(1)}%
+            </span>
+
+            <span className="negative sf-number">
+              {decliningPercent.toFixed(1)}%
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section className="market-analysis-grid">
+        <article className="market-analysis-panel">
+          <div className="market-analysis-panel-heading">
+            <div>
+              <span>SECTOR MOMENTUM</span>
+              <h2>Average daily movement</h2>
+            </div>
+
+            <small>
+              Strongest to weakest
+            </small>
+          </div>
+
+          <div className="market-analysis-chart">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <BarChart
+                data={sectorPerformance}
+                layout="vertical"
+                margin={{
+                  top: 0,
+                  right: 24,
+                  bottom: 0,
+                  left: 18,
+                }}
+              >
+                <CartesianGrid
+                  stroke="rgba(255,255,255,.045)"
+                  horizontal={false}
+                />
+
+                <XAxis
+                  type="number"
+                  tick={{
+                    fill: "#665f70",
+                    fontSize: 9,
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value) =>
+                    `${
+                      Number(value) > 0
+                        ? "+"
+                        : ""
+                    }${Number(value).toFixed(
+                      1
+                    )}%`
+                  }
+                />
+
+                <YAxis
+                  type="category"
+                  dataKey="sector"
+                  width={82}
+                  tick={{
+                    fill: "#9b93a3",
+                    fontSize: 9,
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                <Tooltip
+                  cursor={{
+                    fill:
+                      "rgba(255,255,255,.02)",
+                  }}
+                  contentStyle={{
+                    background: "#110d19",
+                    border:
+                      "1px solid rgba(255,255,255,.09)",
+                    borderRadius: "12px",
+                    color: "#f7f6fb",
+                    fontSize: "10px",
+                    boxShadow:
+                      "0 18px 50px rgba(0,0,0,.38)",
+                  }}
+                  formatter={(value: number) => [
+                    `${
+                      value > 0 ? "+" : ""
+                    }${value.toFixed(2)}%`,
+                    "Average change",
+                  ]}
+                />
+
+                <Bar
+                  dataKey="change"
+                  radius={[0, 6, 6, 0]}
+                  isAnimationActive={false}
+                >
+                  {sectorPerformance.map(
+                    (entry) => (
+                      <Cell
+                        key={entry.sector}
+                        fill={
+                          entry.change >= 0
+                            ? "#22c55e"
+                            : "#ef4444"
+                        }
+                        fillOpacity={0.82}
+                      />
+                    )
+                  )}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+
+        <article className="market-analysis-panel">
+          <div className="market-analysis-panel-heading">
+            <div>
+              <span>MARKET SHAPE</span>
+              <h2>Sector radar</h2>
+            </div>
+
+            <Radar size={17} />
+          </div>
+
+          <div className="market-analysis-chart">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <RadarChart
+                data={radarData}
+                cx="50%"
+                cy="50%"
+                outerRadius="70%"
+              >
+                <PolarGrid
+                  stroke="rgba(255,255,255,.08)"
+                />
+
+                <PolarAngleAxis
+                  dataKey="sector"
+                  tick={{
+                    fill: "#746d7d",
+                    fontSize: 8,
+                  }}
+                />
+
+                <RechartsRadar
+                  name="Performance"
+                  dataKey="performance"
+                  stroke="#a855f7"
+                  strokeWidth={2}
+                  fill="#a855f7"
+                  fillOpacity={0.15}
+                  isAnimationActive={false}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+      </section>
+
+      <section className="market-sector-highlight-grid">
+        <article className="market-sector-highlight market-sector-best">
+          <span>STRONGEST SECTOR</span>
+
+          <h2>
+            {strongestSector?.sector ?? "—"}
+          </h2>
+
+          <strong className="positive sf-number">
+            {strongestSector
+              ? `${
+                  strongestSector.change >= 0
+                    ? "+"
+                    : ""
+                }${strongestSector.change.toFixed(
+                  2
+                )}%`
+              : "—"}
+          </strong>
+
+          <small>
+            {strongestSector?.count ?? 0}
+            tracked stocks
+          </small>
+        </article>
+
+        <article className="market-sector-highlight market-sector-weakest">
+          <span>WEAKEST SECTOR</span>
+
+          <h2>
+            {weakestSector?.sector ?? "—"}
+          </h2>
+
+          <strong className="negative sf-number">
+            {weakestSector
+              ? `${weakestSector.change.toFixed(
+                  2
+                )}%`
+              : "—"}
+          </strong>
+
+          <small>
+            {weakestSector?.count ?? 0}
+            tracked stocks
+          </small>
+        </article>
+      </section>
+
+      <section className="market-movers-grid">
+        <article className="market-movers-panel">
+          <div className="market-movers-heading">
+            <div>
+              <span className="market-mover-heading-icon market-mover-heading-positive">
+                <TrendingUp size={16} />
+              </span>
+
+              <div>
+                <span>TOP MOVERS</span>
+                <h2>Gainers</h2>
               </div>
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: s.color, letterSpacing: '-0.02em' }}>{s.value}</div>
-          </div>
-        ))}
-      </div>
 
-      {/* Market breadth indicator */}
-      <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Market Breadth</h3>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#10b981' }} />
-              <span style={{ fontSize: '12px', color: '#999999' }}>Advancing {advancing}</span>
+            <Link to="/stocks">
+              View markets
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+
+          <div className="market-ranking-list">
+            {gainers.map(
+              (stock, index) => (
+                <Link
+                  key={stock.id}
+                  to={`/stocks/${stock.id}`}
+                  className="market-ranking-row"
+                >
+                  <span className="market-ranking-number sf-number">
+                    {String(index + 1).padStart(
+                      2,
+                      "0"
+                    )}
+                  </span>
+
+                  <span className="market-ranking-logo">
+                    {stock.symbol.slice(0, 2)}
+                  </span>
+
+                  <span className="market-ranking-company">
+                    <strong>
+                      {stock.symbol}
+                    </strong>
+
+                    <small>
+                      {stock.companyName}
+                    </small>
+                  </span>
+
+                  <span className="market-ranking-price sf-number">
+                    $
+                    {stock.livePrice.toFixed(2)}
+                  </span>
+
+                  <span className="market-ranking-change positive sf-number">
+                    +
+                    {stock.liveChange.changePercent.toFixed(
+                      2
+                    )}
+                    %
+                  </span>
+                </Link>
+              )
+            )}
+          </div>
+        </article>
+
+        <article className="market-movers-panel">
+          <div className="market-movers-heading">
+            <div>
+              <span className="market-mover-heading-icon market-mover-heading-negative">
+                <TrendingDown size={16} />
+              </span>
+
+              <div>
+                <span>TOP MOVERS</span>
+                <h2>Losers</h2>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: '#f43f5e' }} />
-              <span style={{ fontSize: '12px', color: '#999999' }}>Declining {declining}</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex rounded-full overflow-hidden h-3">
-          <div style={{ flex: advancing, background: 'linear-gradient(90deg, #10b981, #059669)', transition: 'flex 0.5s ease' }} />
-          <div style={{ flex: declining, background: 'linear-gradient(90deg, #f43f5e, #dc2626)', transition: 'flex 0.5s ease' }} />
-        </div>
-        <div className="flex justify-between mt-1.5">
-          <span style={{ fontSize: '11px', color: '#10b981' }}>{((advancing / STOCKS.length) * 100).toFixed(0)}% advancing</span>
-          <span style={{ fontSize: '11px', color: '#f43f5e' }}>{((declining / STOCKS.length) * 100).toFixed(0)}% declining</span>
-        </div>
-      </div>
 
-      {/* Sector performance + Radar */}
-      <div className="grid lg:grid-cols-2 gap-4">
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6', marginBottom: '16px' }}>Sector Performance</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={sectorPerf} layout="vertical" margin={{ top: 0, right: 20, bottom: 0, left: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333333" horizontal={false} />
-              <XAxis type="number" tick={{ fill: '#4d4d4d', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`} />
-              <YAxis type="category" dataKey="fullSector" tick={{ fill: '#b3b3b3', fontSize: 11 }} axisLine={false} tickLine={false} width={60} />
-              <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333333', borderRadius: '8px', color: '#e7fef6', fontSize: '12px' }} formatter={(v: number) => [`${v > 0 ? '+' : ''}${v.toFixed(2)}%`, 'Avg Change']} />
-              <Bar dataKey="change" radius={[0, 4, 4, 0]} isAnimationActive={false}>
-                {sectorPerf.map((entry, index) => (
-                  <Cell key={`bar-cell-${index}-${entry.fullSector}`} fill={entry.change >= 0 ? '#10b981' : '#f43f5e'} fillOpacity={0.8} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6', marginBottom: '16px' }}>Sector Radar</h3>
-          <ResponsiveContainer width="100%" height={240}>
-            <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-              <PolarGrid stroke="#333333" />
-              <PolarAngleAxis dataKey="sector" tick={{ fill: '#808080', fontSize: 9 }} />
-              <Radar name="Performance" dataKey="performance" stroke="#f6f609" fill="#f6f609" fillOpacity={0.15} />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Gainers & Losers */}
-      <div className="grid lg:grid-cols-2 gap-4">
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={16} style={{ color: '#10b981' }} />
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Top Gainers</h3>
+            <Link to="/stocks">
+              View markets
+              <ChevronRight size={14} />
+            </Link>
           </div>
-          <div className="space-y-2">
-            {gainers.map((s, i) => (
-              <Link key={s.id} to={`/stocks/${s.id}`} style={{ textDecoration: 'none' }}>
-                <div className="flex items-center gap-3 p-2.5 rounded-lg transition-all"
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-                  <span style={{ fontSize: '12px', color: '#4d4d4d', width: '16px', textAlign: 'right' }}>{i + 1}</span>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}20` }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: s.color }}>{s.symbol.slice(0, 2)}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>{s.symbol}</div>
-                    <div style={{ fontSize: '11px', color: '#808080' }} className="truncate">{s.companyName}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>${s.livePrice.toFixed(2)}</div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#10b981' }}>+{s.liveChange.changePercent.toFixed(2)}%</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+
+          <div className="market-ranking-list">
+            {losers.map(
+              (stock, index) => (
+                <Link
+                  key={stock.id}
+                  to={`/stocks/${stock.id}`}
+                  className="market-ranking-row"
+                >
+                  <span className="market-ranking-number sf-number">
+                    {String(index + 1).padStart(
+                      2,
+                      "0"
+                    )}
+                  </span>
+
+                  <span className="market-ranking-logo">
+                    {stock.symbol.slice(0, 2)}
+                  </span>
+
+                  <span className="market-ranking-company">
+                    <strong>
+                      {stock.symbol}
+                    </strong>
+
+                    <small>
+                      {stock.companyName}
+                    </small>
+                  </span>
+
+                  <span className="market-ranking-price sf-number">
+                    $
+                    {stock.livePrice.toFixed(2)}
+                  </span>
+
+                  <span className="market-ranking-change negative sf-number">
+                    {stock.liveChange.changePercent.toFixed(
+                      2
+                    )}
+                    %
+                  </span>
+                </Link>
+              )
+            )}
           </div>
+        </article>
+      </section>
+
+      <section className="market-sector-breakdown-panel">
+        <div className="market-analysis-panel-heading">
+          <div>
+            <span>MARKET COVERAGE</span>
+            <h2>Stocks by sector</h2>
+          </div>
+
+          <small>
+            Average daily sector change
+          </small>
         </div>
 
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingDown size={16} style={{ color: '#f43f5e' }} />
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Top Losers</h3>
-          </div>
-          <div className="space-y-2">
-            {losers.map((s, i) => (
-              <Link key={s.id} to={`/stocks/${s.id}`} style={{ textDecoration: 'none' }}>
-                <div className="flex items-center gap-3 p-2.5 rounded-lg transition-all"
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-                  <span style={{ fontSize: '12px', color: '#4d4d4d', width: '16px', textAlign: 'right' }}>{i + 1}</span>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}20` }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: s.color }}>{s.symbol.slice(0, 2)}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>{s.symbol}</div>
-                    <div style={{ fontSize: '11px', color: '#808080' }} className="truncate">{s.companyName}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>${s.livePrice.toFixed(2)}</div>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#f43f5e' }}>{s.liveChange.changePercent.toFixed(2)}%</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Sector stocks breakdown */}
-      <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6', marginBottom: '16px' }}>Stocks by Sector</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {sectorPerf.map(s => (
-            <div key={s.fullSector} className="p-3 rounded-xl" style={{ background: '#0d0d0d', border: '1px solid #333333' }}>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#b3b3b3', marginBottom: '4px' }}>{s.fullSector}</div>
-              <div className="flex items-center justify-between">
-                <span style={{ fontSize: '11px', color: '#4d4d4d' }}>{s.count} stocks</span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: s.change >= 0 ? '#10b981' : '#f43f5e' }}>
-                  {s.change >= 0 ? '+' : ''}{s.change.toFixed(2)}%
+        <div className="market-sector-breakdown-grid">
+          {sectorPerformance.map(
+            (sector) => (
+              <article key={sector.sector}>
+                <span>
+                  {sector.sector}
                 </span>
-              </div>
-            </div>
-          ))}
+
+                <div>
+                  <small>
+                    {sector.count}{" "}
+                    {sector.count === 1
+                      ? "stock"
+                      : "stocks"}
+                  </small>
+
+                  <strong
+                    className={`sf-number ${
+                      sector.change >= 0
+                        ? "positive"
+                        : "negative"
+                    }`}
+                  >
+                    {sector.change >= 0
+                      ? "+"
+                      : ""}
+                    {sector.change.toFixed(
+                      2
+                    )}
+                    %
+                  </strong>
+                </div>
+              </article>
+            )
+          )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

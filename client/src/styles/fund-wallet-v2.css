@@ -1,0 +1,591 @@
+/* =========================================================
+   FUND WALLET OVERLAY
+========================================================= */
+
+.fund-wallet-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 320;
+
+  display: grid;
+  place-items: center;
+
+  padding: 20px;
+
+  background:
+    rgba(3, 2, 6, 0.76);
+
+  backdrop-filter:
+    blur(10px);
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.fund-wallet-modal {
+  width: min(460px, 100%);
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 15, 29, 0.98),
+      rgba(10, 8, 15, 0.98)
+    );
+
+  box-shadow:
+    0 34px 100px
+      rgba(0, 0, 0, 0.48),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.035);
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.fund-wallet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 20px;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.055);
+}
+
+.fund-wallet-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fund-wallet-title-icon {
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 42px;
+
+  border:
+    1px solid
+    rgba(192, 132, 252, 0.18);
+
+  border-radius: 13px;
+
+  color: #c084fc;
+
+  background:
+    rgba(155, 108, 255, 0.09);
+}
+
+.fund-wallet-title > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.fund-wallet-title > div > span {
+  color: #8f5dda;
+
+  font-size: 8px;
+  font-weight: 850;
+
+  letter-spacing: 0.14em;
+}
+
+.fund-wallet-title h2 {
+  margin-top: 4px;
+
+  color: #f2edf7;
+
+  font-size: 16px;
+  font-weight: 760;
+}
+
+.fund-wallet-title p {
+  margin-top: 4px;
+
+  color: #655e6e;
+
+  font-size: 8px;
+}
+
+.fund-wallet-close {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.055);
+
+  border-radius: 10px;
+
+  color: #716a7a;
+
+  background:
+    rgba(255, 255, 255, 0.02);
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.fund-wallet-close:hover {
+  color: #d8b4fe;
+
+  border-color:
+    rgba(192, 132, 252, 0.15);
+
+  background:
+    rgba(155, 108, 255, 0.05);
+}
+
+/* =========================================================
+   BODY
+========================================================= */
+
+.fund-wallet-body {
+  padding: 20px;
+}
+
+/* =========================================================
+   DEMO NOTICE
+========================================================= */
+
+.fund-wallet-balance-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  padding: 13px;
+
+  border:
+    1px solid
+    rgba(192, 132, 252, 0.11);
+
+  border-radius: 12px;
+
+  background:
+    rgba(155, 108, 255, 0.04);
+}
+
+.fund-wallet-balance-note > span {
+  color: #c084fc;
+}
+
+.fund-wallet-balance-note > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.fund-wallet-balance-note strong {
+  color: #bfa7db;
+
+  font-size: 9px;
+}
+
+.fund-wallet-balance-note p {
+  margin-top: 4px;
+
+  color: #756d7f;
+
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   SECTION HEADING
+========================================================= */
+
+.fund-wallet-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 18px;
+  margin-bottom: 10px;
+}
+
+.fund-wallet-section-heading span {
+  color: #6a6372;
+
+  font-size: 8px;
+  font-weight: 850;
+
+  letter-spacing: 0.13em;
+}
+
+.fund-wallet-section-heading small {
+  color: #514a59;
+
+  font-size: 8px;
+}
+
+/* =========================================================
+   PRESETS
+========================================================= */
+
+.fund-wallet-presets {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 9px;
+}
+
+.fund-wallet-presets button {
+  min-height: 42px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.06);
+
+  border-radius: 11px;
+
+  color: #8b8494;
+
+  background:
+    rgba(255, 255, 255, 0.02);
+
+  cursor: pointer;
+
+  font-size: 10px;
+  font-weight: 750;
+
+  transition:
+    transform 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.fund-wallet-presets button:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  color: #d7c5ef;
+
+  border-color:
+    rgba(192, 132, 252, 0.15);
+
+  background:
+    rgba(155, 108, 255, 0.045);
+}
+
+.fund-wallet-presets button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fund-wallet-presets
+  .fund-wallet-preset-active {
+  color: #ffffff;
+
+  border-color:
+    rgba(192, 132, 252, 0.22);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(154, 89, 239, 0.24),
+      rgba(112, 68, 223, 0.16)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.04);
+}
+
+/* =========================================================
+   CUSTOM AMOUNT
+========================================================= */
+
+.fund-wallet-custom {
+  display: block;
+
+  margin-top: 16px;
+}
+
+.fund-wallet-custom > span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #817a8a;
+
+  font-size: 9px;
+}
+
+.fund-wallet-custom > div {
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 0 13px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 11px;
+
+  color: #6d6576;
+
+  background:
+    rgba(255, 255, 255, 0.022);
+
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.fund-wallet-custom > div:focus-within,
+.fund-wallet-custom
+  > div.fund-wallet-custom-active {
+  border-color:
+    rgba(192, 132, 252, 0.22);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(155, 108, 255, 0.045);
+}
+
+.fund-wallet-custom input {
+  min-width: 0;
+  flex: 1;
+
+  border: 0;
+  outline: 0;
+
+  color: #eee9f3;
+
+  background: transparent;
+
+  font: inherit;
+  font-size: 11px;
+}
+
+.fund-wallet-custom input::placeholder {
+  color: #514a59;
+}
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.fund-wallet-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  margin-top: 16px;
+
+  padding: 14px;
+
+  border:
+    1px solid
+    rgba(34, 197, 94, 0.13);
+
+  border-radius: 12px;
+
+  background:
+    rgba(34, 197, 94, 0.045);
+}
+
+.fund-wallet-summary > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.fund-wallet-summary span {
+  color: #78847b;
+
+  font-size: 8px;
+}
+
+.fund-wallet-summary strong {
+  margin-top: 5px;
+
+  color: #4ade80;
+
+  font-size: 15px;
+}
+
+.fund-wallet-summary-icon {
+  color: #22c55e;
+}
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.fund-wallet-submit {
+  width: 100%;
+  min-height: 46px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin-top: 17px;
+
+  border:
+    1px solid
+    rgba(192, 132, 252, 0.2);
+
+  border-radius: 12px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #9a59ef,
+      #7144df
+    );
+
+  cursor: pointer;
+
+  box-shadow:
+    0 16px 36px
+      rgba(89, 39, 171, 0.2),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.15);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  transition:
+    transform 150ms ease,
+    opacity 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.fund-wallet-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 20px 44px
+      rgba(89, 39, 171, 0.28),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.17);
+}
+
+.fund-wallet-submit:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fund-wallet-cancel {
+  width: 100%;
+  min-height: 38px;
+
+  margin-top: 8px;
+
+  border: 0;
+
+  color: #5f5868;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  font-size: 9px;
+
+  transition:
+    color 150ms ease;
+}
+
+.fund-wallet-cancel:hover:not(:disabled) {
+  color: #aaa2b3;
+}
+
+.fund-wallet-spinner {
+  width: 15px;
+  height: 15px;
+
+  border:
+    2px solid
+    rgba(255, 255, 255, 0.24);
+
+  border-top-color: #ffffff;
+
+  border-radius: 999px;
+
+  animation:
+    fundWalletSpin
+    700ms
+    linear
+    infinite;
+}
+
+@keyframes fundWalletSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 520px) {
+  .fund-wallet-overlay {
+    padding: 12px;
+  }
+
+  .fund-wallet-modal {
+    border-radius: 18px;
+  }
+
+  .fund-wallet-header,
+  .fund-wallet-body {
+    padding: 17px;
+  }
+
+  .fund-wallet-presets {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fund-wallet-presets button,
+  .fund-wallet-submit,
+  .fund-wallet-close {
+    transition: none;
+  }
+
+  .fund-wallet-presets button:hover,
+  .fund-wallet-submit:hover {
+    transform: none;
+  }
+
+  .fund-wallet-spinner {
+    animation-duration: 1.4s;
+  }
+}

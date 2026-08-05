@@ -1,201 +1,42 @@
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --text-50: #e7fef6;
-  --text-100: #cffcec;
-  --text-200: #9ff9da;
-  --text-300: #6ef7c7;
-  --text-400: #3ef4b4;
-  --text-500: #0ef1a2;
-  --text-600: #0bc181;
-  --text-700: #089161;
-  --text-800: #066041;
-  --text-900: #033020;
-  --text-950: #011810;
-
-  --background-50: #f2f2f2;
-  --background-100: #e6e6e6;
-  --background-200: #cccccc;
-  --background-300: #b3b3b3;
-  --background-400: #999999;
-  --background-500: #808080;
-  --background-600: #666666;
-  --background-700: #4d4d4d;
-  --background-800: #333333;
-  --background-900: #1a1a1a;
-  --background-950: #0d0d0d;
-
-  --primary-50: #fefee6;
-  --primary-100: #fdfdce;
-  --primary-200: #fbfb9d;
-  --primary-300: #fafa6b;
-  --primary-400: #f8f83a;
-  --primary-500: #f6f609;
-  --primary-600: #c5c507;
-  --primary-700: #949405;
-  --primary-800: #626204;
-  --primary-900: #313102;
-  --primary-950: #191901;
-
-  --secondary-50: #fffce5;
-  --secondary-100: #fff8cc;
-  --secondary-200: #fff199;
-  --secondary-300: #ffeb66;
-  --secondary-400: #ffe433;
-  --secondary-500: #ffdd00;
-  --secondary-600: #ccb100;
-  --secondary-700: #998500;
-  --secondary-800: #665800;
-  --secondary-900: #332c00;
-  --secondary-950: #1a1600;
-
-  --accent-50: #fffee6;
-  --accent-100: #fffecc;
-  --accent-200: #fefd9a;
-  --accent-300: #fefc67;
-  --accent-400: #fefb34;
-  --accent-500: #fefa01;
-  --accent-600: #cbc801;
-  --accent-700: #989601;
-  --accent-800: #656401;
-  --accent-900: #333200;
-  --accent-950: #191900;
-
-  --font-size: 16px;
-  --background: #ffffff;
-  --foreground: #011810;
-  --card: #ffffff;
-  --card-foreground: #011810;
-  --popover: #ffffff;
-  --popover-foreground: #011810;
-  --primary: #f6f609;
-  --primary-foreground: #191901;
-  --secondary: #e6e6e6;
-  --secondary-foreground: #033020;
-  --muted: #f2f2f2;
-  --muted-foreground: #089161;
-  --accent: #e6e6e6;
-  --accent-foreground: #011810;
-  --destructive: #d4183d;
-  --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
-  --input: transparent;
-  --input-background: #f2f2f2;
-  --switch-background: #cccccc;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --ring: #f6f609;
-  --chart-1: #f6f609;
-  --chart-2: #10b981;
-  --chart-3: #ffdd00;
-  --chart-4: #06b6d4;
-  --chart-5: #f43f5e;
-  --radius: 0.625rem;
-  --sidebar: #f2f2f2;
-  --sidebar-foreground: #011810;
-  --sidebar-primary: #f6f609;
-  --sidebar-primary-foreground: #191901;
-  --sidebar-accent: #e6e6e6;
-  --sidebar-accent-foreground: #033020;
-  --sidebar-border: rgba(0,0,0,0.1);
-  --sidebar-ring: #f6f609;
-}
-
+:root,
 .dark {
-  --text-50: #011810;
-  --text-100: #033020;
-  --text-200: #066041;
-  --text-300: #089161;
-  --text-400: #0bc181;
-  --text-500: #0ef1a2;
-  --text-600: #3ef4b4;
-  --text-700: #6ef7c7;
-  --text-800: #9ff9da;
-  --text-900: #cffcec;
-  --text-950: #e7fef6;
-
-  --background-50: #0d0d0d;
-  --background-100: #1a1a1a;
-  --background-200: #333333;
-  --background-300: #4d4d4d;
-  --background-400: #666666;
-  --background-500: #808080;
-  --background-600: #999999;
-  --background-700: #b3b3b3;
-  --background-800: #cccccc;
-  --background-900: #e6e6e6;
-  --background-950: #f2f2f2;
-
-  --primary-50: #191901;
-  --primary-100: #313102;
-  --primary-200: #626204;
-  --primary-300: #949405;
-  --primary-400: #c5c507;
-  --primary-500: #f6f609;
-  --primary-600: #f8f83a;
-  --primary-700: #fafa6b;
-  --primary-800: #fbfb9d;
-  --primary-900: #fdfdce;
-  --primary-950: #fefee6;
-
-  --secondary-50: #1a1600;
-  --secondary-100: #332c00;
-  --secondary-200: #665800;
-  --secondary-300: #998500;
-  --secondary-400: #ccb100;
-  --secondary-500: #ffdd00;
-  --secondary-600: #ffe433;
-  --secondary-700: #ffeb66;
-  --secondary-800: #fff199;
-  --secondary-900: #fff8cc;
-  --secondary-950: #fffce5;
-
-  --accent-50: #191900;
-  --accent-100: #333200;
-  --accent-200: #656401;
-  --accent-300: #989601;
-  --accent-400: #cbc801;
-  --accent-500: #fefa01;
-  --accent-600: #fefb34;
-  --accent-700: #fefc67;
-  --accent-800: #fefd9a;
-  --accent-900: #fffecc;
-  --accent-950: #fffee6;
-
-  --background: #0d0d0d;
-  --foreground: #e7fef6;
-  --card: #1a1a1a;
-  --card-foreground: #e7fef6;
-  --popover: #1a1a1a;
-  --popover-foreground: #e7fef6;
-  --primary: #f6f609;
-  --primary-foreground: #191901;
-  --secondary: #333333;
-  --secondary-foreground: #b3b3b3;
-  --muted: #1a1a1a;
-  --muted-foreground: #808080;
-  --accent: #333333;
-  --accent-foreground: #e7fef6;
-  --destructive: #f43f5e;
+  --background: #07050d;
+  --foreground: #f7f6fb;
+  --card: #100d18;
+  --card-foreground: #f7f6fb;
+  --popover: #100d18;
+  --popover-foreground: #f7f6fb;
+  --primary: #9b6cff;
+  --primary-foreground: #ffffff;
+  --secondary: #171321;
+  --secondary-foreground: #ddd8e8;
+  --muted: #15111e;
+  --muted-foreground: #8f899c;
+  --accent: #21182e;
+  --accent-foreground: #f7f6fb;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #333333;
-  --input: #1a1a1a;
-  --ring: #f6f609;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --chart-1: #f6f609;
-  --chart-2: #10b981;
-  --chart-3: #ffdd00;
-  --chart-4: #06b6d4;
-  --chart-5: #f43f5e;
-  --sidebar: #111111;
-  --sidebar-foreground: #e7fef6;
-  --sidebar-primary: #f6f609;
-  --sidebar-primary-foreground: #191901;
-  --sidebar-accent: #333333;
-  --sidebar-accent-foreground: #e7fef6;
-  --sidebar-border: #333333;
-  --sidebar-ring: #f6f609;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.06);
+  --input-background: rgba(255, 255, 255, 0.045);
+  --switch-background: #2a2434;
+  --ring: #a855f7;
+  --chart-1: #9b6cff;
+  --chart-2: #22c55e;
+  --chart-3: #06b6d4;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+  --radius: 0.9rem;
+  --sidebar: #0b0811;
+  --sidebar-foreground: #f7f6fb;
+  --sidebar-primary: #9b6cff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #171321;
+  --sidebar-accent-foreground: #f7f6fb;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: #a855f7;
 }
 
 @theme inline {
@@ -225,10 +66,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 5px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -244,76 +85,64 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    background: var(--background);
+    font-size: 16px;
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
+    margin: 0;
+    min-width: 320px;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    margin: 0;
   }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  button,
+  a {
+    font-family: 'Manrope', 'Inter', sans-serif;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: rgba(155, 108, 255, 0.32);
+    color: #ffffff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
   ::-webkit-scrollbar-track {
     background: transparent;
   }
+
   ::-webkit-scrollbar-thumb {
-    background: #333333;
-    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.13);
+    border-radius: 999px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
-    background: #4d4d4d;
-  }
-
-  /**
-  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
-  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
-  */
-
-  html {
-    font-size: var(--font-size);
-  }
-
-  h1 {
-    font-size: var(--text-2xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  h2 {
-    font-size: var(--text-xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  h3 {
-    font-size: var(--text-lg);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  h4 {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  label {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  button {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
-  }
-
-  input {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-normal);
-    line-height: 1.5;
+    background: rgba(255, 255, 255, 0.22);
   }
 }

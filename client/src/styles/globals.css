@@ -1,0 +1,94 @@
+/* =========================================================
+   GLOBAL TYPOGRAPHY SCALE
+========================================================= */
+
+:root {
+  --font-xs: 30px;
+  --font-sm: 32px;
+  --font-base: 36px;
+  --font-md: 39px;
+  --font-lg: 42px;
+  --font-xl: 50px;
+  --font-2xl: 58px;
+  --font-3xl: 74px;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-size: var(--font-base);
+  line-height: 1.6;
+}
+
+/* Generic text */
+
+p,
+li,
+input,
+textarea,
+select,
+button {
+  font-size: var(--font-base);
+}
+
+small {
+  font-size: var(--font-xs);
+}
+
+/* Common UI text */
+
+.sf-button,
+.auth-primary-button,
+.auth-demo-button,
+.stock-detail-actions button,
+.fund-wallet-submit,
+.fund-wallet-cancel,
+.notification-toolbar button {
+  font-size: var(--font-base) !important;
+}
+
+.sf-badge,
+.sf-live-pill,
+.stock-detail-symbol,
+.sf-eyebrow,
+.sf-section-kicker,
+.sf-ribbon-kicker,
+.profile-eyebrow,
+.profile-panel-heading > div > span {
+  font-size: var(--font-xs) !important;
+}
+
+.sf-nav-links a,
+.sf-login-link,
+.app-nav-copy strong,
+.app-search-trigger > span,
+.profile-field input,
+.auth-field input,
+.stock-trade-field input {
+  font-size: var(--font-sm) !important;
+}
+
+.app-nav-copy small,
+.profile-field > span,
+.auth-field > span,
+.notification-content p,
+.stock-stat-list span,
+.stock-position-grid span {
+  font-size: var(--font-xs) !important;
+}
+
+/* Headings */
+
+h1 {
+  line-height: 1.08;
+}
+
+h2 {
+  line-height: 1.15;
+}
+
+h3 {
+  line-height: 1.25;
+}

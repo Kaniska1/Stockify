@@ -1,303 +1,854 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router';
-import { TrendingUp, TrendingDown, Wallet, BarChart2, DollarSign, Activity, ChevronRight } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { useAuth } from '../context/AuthContext';
-import { useApp } from '../context/AppContext';
-import { STOCKS } from '../data/stocks';
+import { useMemo } from "react";
+import { Link } from "react-router";
+import { getStockLogo } from "../lib/getStockLogo";
+import {
+  ArrowUpRight,
+  Bot,
+  Briefcase,
+  ChevronRight,
+  Clock3,
+  Sparkles,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 
-function fmt(n: number) {
-  const abs = Math.abs(n);
-  if (abs >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `$${(n / 1e3).toFixed(1)}K`;
-  return `$${n.toFixed(2)}`;
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+import { useAuth } from "../context/AuthContext";
+import { useApp } from "../context/AppContext";
+import { STOCKS } from "../data/stocks";
+
+function formatCurrency(value: number): string {
+  const absolute = Math.abs(value);
+
+  if (absolute >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2)}M`;
+  }
+
+  if (absolute >= 1_000) {
+    return `$${(value / 1_000).toFixed(1)}K`;
+  }
+
+  return `$${value.toFixed(2)}`;
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+function formatDate(value: string): string {
+  return new Date(value).toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  );
 }
 
-const COLORS = ['#f6f609', '#c5c507', '#06b6d4', '#10b981', '#f59e0b', '#f97316', '#ef4444', '#ec4899'];
+const ALLOCATION_COLORS = [
+  "#a855f7",
+  "#8b5cf6",
+  "#c084fc",
+  "#6d5dfc",
+  "#22c55e",
+  "#06b6d4",
+  "#f59e0b",
+];
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { livePrices, liveChanges, walletBalance, holdings, transactions, portfolioValue, totalInvested, dayPnl, totalPnl } = useApp();
 
-  const totalValue = portfolioValue + walletBalance;
-  const totalReturn = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+  const {
+    livePrices,
+    liveChanges,
+    walletBalance,
+    holdings,
+    transactions,
+    portfolioValue,
+    totalInvested,
+    dayPnl,
+    totalPnl,
+  } = useApp();
 
-  const sortedByChange = useMemo(() =>
-    [...STOCKS].sort((a, b) => (liveChanges[b.id]?.changePercent ?? b.changePercent) - (liveChanges[a.id]?.changePercent ?? a.changePercent)),
+  const totalValue =
+    portfolioValue + walletBalance;
+
+  const totalReturn =
+    totalInvested > 0
+      ? (totalPnl / totalInvested) * 100
+      : 0;
+
+  const sortedStocks = useMemo(
+    () =>
+      [...STOCKS].sort(
+        (first, second) =>
+          (
+            liveChanges[second.id]
+              ?.changePercent ??
+            second.changePercent
+          ) -
+          (
+            liveChanges[first.id]
+              ?.changePercent ??
+            first.changePercent
+          )
+      ),
     [liveChanges]
   );
-  const gainers = sortedByChange.slice(0, 5);
-  const losers = sortedByChange.slice(-5).reverse();
 
-  // Build portfolio chart from first transaction date
-  const portfolioChartData = useMemo(() => {
-    if (holdings.length === 0) return [];
-    const today = new Date('2026-07-19');
-    const points = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const val = holdings.reduce((sum, h) => {
-        const stock = STOCKS.find(s => s.id === h.stockId);
-        if (!stock) return sum;
-        const daysBack = i;
-        const histIdx = Math.max(0, stock.priceHistory.length - 1 - daysBack);
-        const price = stock.priceHistory[histIdx]?.price ?? stock.currentPrice;
-        return sum + h.quantity * price;
-      }, 0);
-      points.push({ date: label, value: +val.toFixed(2) });
+  const marketMovers =
+    sortedStocks.slice(0, 5);
+
+  const recentTransactions =
+    transactions.slice(0, 5);
+
+  const chartData = useMemo(() => {
+    if (holdings.length === 0) {
+      return [];
     }
-    return points;
-  }, [holdings]);
 
-  const pieData = useMemo(() =>
-    holdings.map((h, i) => ({
-      name: h.symbol,
-      value: h.quantity * (livePrices[h.stockId] ?? 0),
-      color: COLORS[i % COLORS.length],
-    })).filter(d => d.value > 0),
+    const today = new Date();
+    const points = [];
+
+    for (
+      let index = 29;
+      index >= 0;
+      index -= 1
+    ) {
+      const date = new Date(today);
+
+      date.setDate(
+        date.getDate() - index
+      );
+
+      const value = holdings.reduce(
+        (sum, holding) => {
+          const stock = STOCKS.find(
+            item =>
+              item.id ===
+              holding.stockId
+          );
+
+          if (!stock) {
+            return sum;
+          }
+
+          const historicalIndex =
+            Math.max(
+              0,
+              stock.priceHistory.length -
+                1 -
+                index
+            );
+
+          const price =
+            stock.priceHistory[
+              historicalIndex
+            ]?.price ??
+            livePrices[
+              holding.stockId
+            ] ??
+            stock.currentPrice;
+
+          return (
+            sum +
+            holding.quantity * price
+          );
+        },
+        0
+      );
+
+      points.push({
+        date: date.toLocaleDateString(
+          "en-US",
+          {
+            month: "short",
+            day: "numeric",
+          }
+        ),
+        value: Number(
+          value.toFixed(2)
+        ),
+      });
+    }
+
+    return points;
+  }, [holdings, livePrices]);
+
+  const allocation = useMemo(
+    () =>
+      holdings
+        .map(
+          (
+            holding,
+            index
+          ) => ({
+            name: holding.symbol,
+
+            value:
+              holding.quantity *
+              (
+                livePrices[
+                  holding.stockId
+                ] ?? 0
+              ),
+
+            color:
+              ALLOCATION_COLORS[
+                index %
+                  ALLOCATION_COLORS.length
+              ],
+          })
+        )
+        .filter(
+          item => item.value > 0
+        ),
     [holdings, livePrices]
   );
 
-  const recentTx = transactions.slice(0, 5);
-  const popularStocks = STOCKS.slice(0, 8);
-
-  const stats = [
-    { label: 'Total Portfolio', value: fmt(totalValue), sub: `Cash + Stocks`, icon: <Wallet size={18} />, color: '#f6f609', bg: 'rgba(246,246,9,0.1)' },
-    { label: "Today's P&L", value: fmt(dayPnl), sub: dayPnl >= 0 ? 'Gain today' : 'Loss today', icon: dayPnl >= 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />, color: dayPnl >= 0 ? '#10b981' : '#f43f5e', bg: dayPnl >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)' },
-    { label: 'Total Returns', value: `${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`, sub: fmt(totalPnl), icon: <BarChart2 size={18} />, color: totalPnl >= 0 ? '#10b981' : '#f43f5e', bg: totalPnl >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)' },
-    { label: 'Available Cash', value: fmt(walletBalance), sub: 'Ready to invest', icon: <DollarSign size={18} />, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-  ];
+  const firstName =
+    user?.name?.split(" ")[0] ??
+    "Investor";
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="dashboard-v2">
+      <section className="dashboard-heading">
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#e7fef6', letterSpacing: '-0.02em' }}>
-            Good morning, {user?.name?.split(' ')[0]} 👋
+          <span className="dashboard-eyebrow">
+            LIVE PORTFOLIO OVERVIEW
+          </span>
+
+          <h1>
+            Hello, {firstName}!
           </h1>
-          <p style={{ fontSize: '13px', color: '#808080', marginTop: '2px' }}>
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+
+          <p>
+            Your market, portfolio and AI
+            research workspace.
           </p>
         </div>
-        <Link to="/stocks">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all" style={{ background: 'linear-gradient(135deg, #f6f609, #c5c507)', color: 'white', fontSize: '13px', fontWeight: 600 }}>
-            <Activity size={14} /> Trade Now
-          </button>
+
+        <Link
+          to="/stocks"
+          className="dashboard-trade-button"
+        >
+          Explore markets
+
+          <ArrowUpRight size={16} />
         </Link>
-      </div>
+      </section>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(s => (
-          <div key={s.label} className="p-4 rounded-xl transition-all" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-            <div className="flex items-center justify-between mb-3">
-              <span style={{ fontSize: '12px', color: '#808080' }}>{s.label}</span>
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: s.bg }}>
-                <span style={{ color: s.color }}>{s.icon}</span>
-              </div>
-            </div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: s.color, letterSpacing: '-0.02em' }}>{s.value}</div>
-            <div style={{ fontSize: '12px', color: '#808080', marginTop: '2px' }}>{s.sub}</div>
-          </div>
-        ))}
-      </div>
+      <section className="portfolio-hero-panel">
+        <div className="portfolio-hero-copy">
+          <span className="portfolio-hero-label">
+            Total account value
+          </span>
 
-      {/* Charts row */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* Portfolio growth */}
-        <div className="lg:col-span-2 p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Portfolio Growth</h3>
-              <p style={{ fontSize: '12px', color: '#808080' }}>Last 30 days</p>
-            </div>
-            <div style={{ fontSize: '13px', color: totalPnl >= 0 ? '#10b981' : '#f43f5e', fontWeight: 600 }}>
-              {totalPnl >= 0 ? '+' : ''}{fmt(totalPnl)}
-            </div>
+          <div className="portfolio-hero-value sf-number">
+            {formatCurrency(totalValue)}
           </div>
-          {portfolioChartData.length > 0 ? (
-            <>
-              <svg width={0} height={0} style={{ position: 'absolute' }}>
+
+          <div className="portfolio-hero-meta">
+            <span
+              className={
+                totalPnl >= 0
+                  ? "positive"
+                  : "negative"
+              }
+            >
+              {totalPnl >= 0 ? (
+                <TrendingUp size={14} />
+              ) : (
+                <TrendingDown
+                  size={14}
+                />
+              )}
+
+              {totalReturn >= 0
+                ? "+"
+                : ""}
+
+              {totalReturn.toFixed(2)}%
+            </span>
+
+            <span>
+              {formatCurrency(
+                totalPnl
+              )}{" "}
+              all time
+            </span>
+          </div>
+
+          <div className="portfolio-hero-actions">
+            <Link to="/portfolio">
+              View portfolio
+
+              <ChevronRight
+                size={14}
+              />
+            </Link>
+
+            <Link to="/portfolio-analyzer">
+              Analyze with AI
+
+              <Sparkles size={14} />
+            </Link>
+          </div>
+        </div>
+
+        <div className="portfolio-hero-chart">
+          {chartData.length > 0 ? (
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <AreaChart
+                data={chartData}
+                margin={{
+                  top: 10,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                }}
+              >
                 <defs>
-                  <linearGradient id="dashPGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f6f609" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#f6f609" stopOpacity={0} />
+                  <linearGradient
+                    id="dashboardPurple"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="#a855f7"
+                      stopOpacity={0.42}
+                    />
+
+                    <stop
+                      offset="100%"
+                      stopColor="#a855f7"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-              </svg>
-            <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={portfolioChartData} margin={{ top: 5, right: 0, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
-                <XAxis dataKey="date" tick={{ fill: '#4d4d4d', fontSize: 10 }} axisLine={false} tickLine={false} interval={6} />
-                <YAxis tick={{ fill: '#4d4d4d', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={{ background: '#1a1a1a', border: '1px solid #333333', borderRadius: '8px', color: '#e7fef6', fontSize: '12px' }}
-                  formatter={(v: number) => [`$${v.toLocaleString()}`, 'Value']}
+
+                <CartesianGrid
+                  stroke="rgba(255,255,255,.045)"
+                  vertical={false}
                 />
-                <Area isAnimationActive={false} type="monotone" dataKey="value" stroke="#f6f609" strokeWidth={2} fill="url(#dashPGrad)" dot={false} />
+
+                <XAxis
+                  dataKey="date"
+                  tick={{
+                    fill: "#6f6878",
+                    fontSize: 10,
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={6}
+                />
+
+                <YAxis
+                  hide
+                  domain={[
+                    "dataMin",
+                    "dataMax",
+                  ]}
+                />
+
+                <Tooltip
+                  cursor={{
+                    stroke:
+                      "rgba(192,132,252,.28)",
+                  }}
+                  contentStyle={{
+                    background:
+                      "#110d19",
+
+                    border:
+                      "1px solid rgba(255,255,255,.09)",
+
+                    borderRadius:
+                      "12px",
+
+                    color:
+                      "#f7f6fb",
+
+                    fontSize:
+                      "11px",
+
+                    boxShadow:
+                      "0 18px 50px rgba(0,0,0,.38)",
+                  }}
+                  formatter={(
+                    value: number
+                  ) => [
+                    formatCurrency(
+                      value
+                    ),
+                    "Portfolio",
+                  ]}
+                />
+
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#b66bff"
+                  strokeWidth={2.5}
+                  fill="url(#dashboardPurple)"
+                  dot={false}
+                  isAnimationActive={
+                    false
+                  }
+                />
               </AreaChart>
             </ResponsiveContainer>
-            </>
           ) : (
-            <div className="h-[180px] flex flex-col items-center justify-center">
-              <BarChart2 size={32} style={{ color: '#333333', marginBottom: '8px' }} />
-              <p style={{ fontSize: '13px', color: '#808080' }}>Buy stocks to see portfolio growth</p>
-              <Link to="/stocks" style={{ fontSize: '12px', color: '#f6f609', marginTop: '8px' }}>Browse Markets →</Link>
+            <div className="dashboard-empty-chart">
+              <TrendingUp size={30} />
+
+              <strong>
+                Your performance chart
+                starts here
+              </strong>
+
+              <span>
+                Buy your first stock to
+                begin tracking growth.
+              </span>
             </div>
           )}
         </div>
+      </section>
 
-        {/* Allocation */}
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6', marginBottom: '4px' }}>Allocation</h3>
-          <p style={{ fontSize: '12px', color: '#808080', marginBottom: '12px' }}>{holdings.length} positions</p>
-          {pieData.length > 0 ? (
+      <section className="dashboard-metrics">
+        <article>
+          <span className="metric-label">
+            Invested value
+          </span>
+
+          <strong className="sf-number">
+            {formatCurrency(
+              portfolioValue
+            )}
+          </strong>
+
+          <small>
+            {holdings.length} active{" "}
+            {holdings.length === 1
+              ? "position"
+              : "positions"}
+          </small>
+        </article>
+
+        <article>
+          <span className="metric-label">
+            Available cash
+          </span>
+
+          <strong className="sf-number">
+            {formatCurrency(
+              walletBalance
+            )}
+          </strong>
+
+          <small>
+            Ready for your next trade
+          </small>
+        </article>
+
+        <article>
+          <span className="metric-label">
+            Today&apos;s P&amp;L
+          </span>
+
+          <strong
+            className={`sf-number ${
+              dayPnl >= 0
+                ? "positive"
+                : "negative"
+            }`}
+          >
+            {dayPnl >= 0
+              ? "+"
+              : ""}
+
+            {formatCurrency(dayPnl)}
+          </strong>
+
+          <small>
+            Based on live market quotes
+          </small>
+        </article>
+      </section>
+
+      <section className="dashboard-grid">
+        <article className="dashboard-panel dashboard-panel-wide">
+          <div className="panel-heading">
+            <div>
+              <span>
+                Market pulse
+              </span>
+
+              <h2>
+                Today&apos;s leaders
+              </h2>
+            </div>
+
+            <Link to="/stocks">
+              View markets
+
+              <ChevronRight
+                size={14}
+              />
+            </Link>
+          </div>
+
+          <div className="market-movers-list">
+            {marketMovers.map(
+              stock => {
+                const price =
+                  livePrices[
+                    stock.id
+                  ] ??
+                  stock.currentPrice;
+
+                const change =
+                  liveChanges[
+                    stock.id
+                  ] ?? {
+                    changePercent:
+                      stock.changePercent,
+
+                    change:
+                      stock.change,
+                  };
+
+                const logo = getStockLogo(
+                  stock.symbol
+                );
+
+                return (
+                  <Link
+                    to={`/stocks/${stock.id}`}
+                    className="market-mover-row"
+                    key={stock.id}
+                  >
+                    <span className="market-mover-logo">
+                      {logo ? (
+                        <svg
+                          viewBox="0 0 24 24"
+                          dangerouslySetInnerHTML={{
+                            __html: logo.path,
+                          }}
+                        />
+                      ) : (
+                        stock.symbol[0]
+                      )}
+                    </span>
+
+                    <span className="market-mover-company">
+                      <strong>
+                        {stock.symbol}
+                      </strong>
+
+                      <small>
+                        {
+                          stock.companyName
+                        }
+                      </small>
+                    </span>
+
+                    <span className="market-mover-price sf-number">
+                      ${price.toFixed(2)}
+                    </span>
+
+                    <span
+                      className={
+                        change.changePercent >=
+                        0
+                          ? "market-mover-change positive"
+                          : "market-mover-change negative"
+                      }
+                    >
+                      {change.changePercent >=
+                      0
+                        ? "+"
+                        : ""}
+
+                      {change.changePercent.toFixed(
+                        2
+                      )}
+                      %
+                    </span>
+                  </Link>
+                );
+              }
+            )}
+          </div>
+        </article>
+
+        <article className="dashboard-panel">
+          <div className="panel-heading">
+            <div>
+              <span>
+                Allocation
+              </span>
+
+              <h2>
+                Portfolio mix
+              </h2>
+            </div>
+          </div>
+
+          {allocation.length > 0 ? (
             <>
-              <ResponsiveContainer width="100%" height={140}>
-                <PieChart>
-                  <Pie isAnimationActive={false} data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={2} dataKey="value">
-                    {pieData.map((entry, i) => <Cell key={`pie-cell-${i}-${entry.name}`} fill={entry.color} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333333', borderRadius: '8px', fontSize: '12px', color: '#e7fef6' }} formatter={(v: number) => [`$${v.toLocaleString()}`, '']} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-1.5 mt-2">
-                {pieData.slice(0, 4).map(d => (
-                  <div key={d.name} className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
-                    <span style={{ fontSize: '12px', color: '#b3b3b3' }}>{d.name}</span>
-                    <span className="ml-auto" style={{ fontSize: '12px', color: '#999999' }}>{((d.value / portfolioValue) * 100).toFixed(1)}%</span>
-                  </div>
-                ))}
+              <div className="allocation-chart">
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
+                  <PieChart>
+                    <Pie
+                      data={allocation}
+                      dataKey="value"
+                      innerRadius={58}
+                      outerRadius={78}
+                      paddingAngle={3}
+                      stroke="none"
+                      isAnimationActive={
+                        false
+                      }
+                    >
+                      {allocation.map(
+                        entry => (
+                          <Cell
+                            key={
+                              entry.name
+                            }
+                            fill={
+                              entry.color
+                            }
+                          />
+                        )
+                      )}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div className="allocation-center">
+                  <strong>
+                    {holdings.length}
+                  </strong>
+
+                  <span>
+                    positions
+                  </span>
+                </div>
+              </div>
+
+              <div className="allocation-list">
+                {allocation
+                  .slice(0, 5)
+                  .map(item => (
+                    <div
+                      key={item.name}
+                    >
+                      <span
+                        className="allocation-dot"
+                        style={{
+                          background:
+                            item.color,
+                        }}
+                      />
+
+                      <span>
+                        {item.name}
+                      </span>
+
+                      <strong className="sf-number">
+                        {portfolioValue >
+                        0
+                          ? (
+                              (
+                                item.value /
+                                portfolioValue
+                              ) *
+                              100
+                            ).toFixed(
+                              1
+                            )
+                          : "0.0"}
+                        %
+                      </strong>
+                    </div>
+                  ))}
               </div>
             </>
           ) : (
-            <div className="h-[160px] flex flex-col items-center justify-center">
-              <p style={{ fontSize: '13px', color: '#808080', textAlign: 'center' }}>No holdings yet</p>
+            <div className="panel-empty-state">
+              <Briefcase size={25} />
+
+              <strong>
+                No holdings yet
+              </strong>
+
+              <span>
+                Your allocation will
+                appear after your first
+                trade.
+              </span>
             </div>
           )}
-        </div>
-      </div>
+        </article>
 
-      {/* Bottom row */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* Recent transactions */}
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Recent Transactions</h3>
-            <Link to="/transactions" style={{ fontSize: '12px', color: '#f6f609' }}>View all</Link>
+        <article className="dashboard-panel">
+          <div className="panel-heading">
+            <div>
+              <span>
+                Activity
+              </span>
+
+              <h2>
+                Recent trades
+              </h2>
+            </div>
+
+            <Link to="/transactions">
+              View all
+
+              <ChevronRight
+                size={14}
+              />
+            </Link>
           </div>
-          {recentTx.length === 0 ? (
-            <div className="py-8 text-center" style={{ color: '#808080', fontSize: '13px' }}>No transactions yet</div>
+
+          {recentTransactions.length >
+          0 ? (
+            <div className="recent-trades-list">
+              {recentTransactions.map(
+                transaction => (
+                  <div
+                    className="recent-trade-row"
+                    key={
+                      transaction.id
+                    }
+                  >
+                    <span
+                      className={`trade-direction ${
+                        transaction.type ===
+                        "BUY"
+                          ? "trade-buy"
+                          : "trade-sell"
+                      }`}
+                    >
+                      {transaction.type ===
+                      "BUY" ? (
+                        <TrendingUp
+                          size={14}
+                        />
+                      ) : (
+                        <TrendingDown
+                          size={14}
+                        />
+                      )}
+                    </span>
+
+                    <span className="recent-trade-copy">
+                      <strong>
+                        {
+                          transaction.symbol
+                        }
+                      </strong>
+
+                      <small>
+                        {
+                          transaction.quantity
+                        }{" "}
+                        shares ·{" "}
+                        {formatDate(
+                          transaction.timestamp
+                        )}
+                      </small>
+                    </span>
+
+                    <span
+                      className={`recent-trade-value sf-number ${
+                        transaction.type ===
+                        "BUY"
+                          ? "negative"
+                          : "positive"
+                      }`}
+                    >
+                      {transaction.type ===
+                      "BUY"
+                        ? "-"
+                        : "+"}
+
+                      {formatCurrency(
+                        transaction.totalAmount
+                      )}
+                    </span>
+                  </div>
+                )
+              )}
+            </div>
           ) : (
-            <div className="space-y-3">
-              {recentTx.map(tx => (
-                <div key={tx.id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: tx.type === 'BUY' ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)' }}>
-                    {tx.type === 'BUY' ? <TrendingUp size={14} style={{ color: '#10b981' }} /> : <TrendingDown size={14} style={{ color: '#f43f5e' }} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: '13px', fontWeight: 500, color: '#e7fef6' }}>{tx.symbol}</div>
-                    <div style={{ fontSize: '11px', color: '#808080' }}>{tx.quantity} shares · {fmtDate(tx.timestamp)}</div>
-                  </div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: tx.type === 'BUY' ? '#f43f5e' : '#10b981', textAlign: 'right' }}>
-                    {tx.type === 'BUY' ? '-' : '+'}{fmt(tx.totalAmount)}
-                  </div>
-                </div>
-              ))}
+            <div className="panel-empty-state">
+              <Clock3 size={25} />
+
+              <strong>
+                No activity yet
+              </strong>
+
+              <span>
+                Your trades will appear
+                here.
+              </span>
             </div>
           )}
-        </div>
+        </article>
 
-        {/* Top Gainers */}
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Top Gainers</h3>
-            <TrendingUp size={15} style={{ color: '#10b981' }} />
+        <article className="dashboard-ai-panel">
+          <div className="dashboard-ai-icon">
+            <Bot size={20} />
           </div>
-          <div className="space-y-3">
-            {gainers.map(s => {
-              const chg = liveChanges[s.id] ?? { changePercent: s.changePercent };
-              return (
-                <Link key={s.id} to={`/stocks/${s.id}`} className="flex items-center gap-3 group">
-                  <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}20` }}>
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: s.color }}>{s.symbol.slice(0, 2)}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: '12px', fontWeight: 500, color: '#e7fef6' }}>{s.symbol}</div>
-                    <div style={{ fontSize: '11px', color: '#808080' }}>${(livePrices[s.id] ?? s.currentPrice).toFixed(2)}</div>
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#10b981' }}>+{chg.changePercent.toFixed(2)}%</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Top Losers */}
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Top Losers</h3>
-            <TrendingDown size={15} style={{ color: '#f43f5e' }} />
-          </div>
-          <div className="space-y-3">
-            {losers.map(s => {
-              const chg = liveChanges[s.id] ?? { changePercent: s.changePercent };
-              return (
-                <Link key={s.id} to={`/stocks/${s.id}`} className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: `${s.color}20` }}>
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: s.color }}>{s.symbol.slice(0, 2)}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: '12px', fontWeight: 500, color: '#e7fef6' }}>{s.symbol}</div>
-                    <div style={{ fontSize: '11px', color: '#808080' }}>${(livePrices[s.id] ?? s.currentPrice).toFixed(2)}</div>
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#f43f5e' }}>{chg.changePercent.toFixed(2)}%</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+          <div>
+            <span className="dashboard-ai-label">
+              STOCKIFY AI
+            </span>
 
-      {/* Popular stocks */}
-      <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Popular Stocks</h3>
-          <Link to="/stocks" className="flex items-center gap-1" style={{ fontSize: '12px', color: '#f6f609' }}>
-            View all <ChevronRight size={13} />
+            <h2>
+              Turn portfolio data into
+              clearer decisions.
+            </h2>
+
+            <p>
+              Review concentration, cash
+              utilization and risk with a
+              personalized AI analysis.
+            </p>
+          </div>
+
+          <Link to="/portfolio-analyzer">
+            Analyze portfolio
+
+            <ArrowUpRight size={15} />
           </Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-          {popularStocks.map(s => {
-            const price = livePrices[s.id] ?? s.currentPrice;
-            const chg = liveChanges[s.id] ?? { changePercent: s.changePercent };
-            const isUp = chg.changePercent >= 0;
-            return (
-              <Link key={s.id} to={`/stocks/${s.id}`} className="p-3 rounded-lg transition-all" style={{ background: '#0d0d0d', border: '1px solid #333333', textDecoration: 'none' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#4d4d4d'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#333333'; }}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ background: `${s.color}20` }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: s.color }}>{s.symbol.slice(0, 2)}</span>
-                </div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#e7fef6' }}>{s.symbol}</div>
-                <div style={{ fontSize: '11px', color: '#b3b3b3' }}>${price.toFixed(2)}</div>
-                <div style={{ fontSize: '11px', color: isUp ? '#10b981' : '#f43f5e', marginTop: '2px' }}>
-                  {isUp ? '+' : ''}{chg.changePercent.toFixed(2)}%
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+        </article>
+      </section>
     </div>
   );
 }

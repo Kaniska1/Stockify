@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { getStockLogo } from "../lib/getStockLogo";
 import {
   AlertTriangle,
   Brain,
@@ -21,86 +22,96 @@ import {
   type PortfolioAnalysis,
 } from "../lib/ai";
 
-function scoreColor(score: number) {
-  if (score >= 75) return "#10b981";
-  if (score >= 50) return "#f59e0b";
-  return "#f43f5e";
+interface ScoreCardProps {
+  label: string;
+  score: number;
+  icon: ReactNode;
 }
 
-function severityColor(
+function clampScore(score: number): number {
+  return Math.max(0, Math.min(100, score));
+}
+
+function getScoreTone(score: number): string {
+  if (score >= 75) {
+    return "good";
+  }
+
+  if (score >= 50) {
+    return "moderate";
+  }
+
+  return "poor";
+}
+
+function getRiskTone(
+  riskLevel: PortfolioAnalysis["riskLevel"]
+): string {
+  if (riskLevel === "Low") {
+    return "low";
+  }
+
+  if (riskLevel === "Moderate") {
+    return "moderate";
+  }
+
+  return "high";
+}
+
+function getSeverityTone(
   severity: "Low" | "Moderate" | "High"
-) {
-  if (severity === "Low") return "#10b981";
-  if (severity === "Moderate") return "#f59e0b";
-  return "#f43f5e";
+): string {
+  return severity.toLowerCase();
+}
+
+function formatCurrency(value: number): string {
+  const absolute = Math.abs(value);
+
+  if (absolute >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2)}M`;
+  }
+
+  if (absolute >= 1_000) {
+    return `$${(value / 1_000).toFixed(1)}K`;
+  }
+
+  return `$${value.toFixed(2)}`;
 }
 
 function ScoreCard({
   label,
   score,
   icon,
-}: {
-  label: string;
-  score: number;
-  icon: React.ReactNode;
-}) {
-  const color = scoreColor(score);
+}: ScoreCardProps) {
+  const normalizedScore = clampScore(score);
+  const tone = getScoreTone(normalizedScore);
 
   return (
-    <div
-      className="p-4 rounded-xl"
-      style={{
-        background: "#1a1a1a",
-        border: "1px solid #333333",
-      }}
+    <article
+      className={`analyzer-score-card analyzer-score-${tone}`}
     >
-      <div className="flex items-center justify-between mb-3">
-        <span
-          style={{
-            fontSize: "12px",
-            color: "#808080",
-          }}
-        >
-          {label}
-        </span>
+      <div className="analyzer-score-header">
+        <span>{label}</span>
 
-        <span style={{ color }}>{icon}</span>
-      </div>
-
-      <div
-        style={{
-          fontSize: "24px",
-          fontWeight: 750,
-          color,
-        }}
-      >
-        {score}
-        <span
-          style={{
-            fontSize: "12px",
-            color: "#5f5f5f",
-          }}
-        >
-          /100
+        <span className="analyzer-score-icon">
+          {icon}
         </span>
       </div>
 
-      <div
-        className="mt-3 h-1.5 rounded-full overflow-hidden"
-        style={{ background: "#2a2a2a" }}
-      >
-        <div
-          className="h-full rounded-full"
+      <div className="analyzer-score-value sf-number">
+        {normalizedScore}
+
+        <small>/100</small>
+      </div>
+
+      <div className="analyzer-score-track">
+        <span
           style={{
-            width: `${Math.max(
-              0,
-              Math.min(100, score)
-            )}%`,
-            background: color,
+            width: `${normalizedScore}%`,
           }}
         />
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -119,6 +130,19 @@ export default function PortfolioAnalyzerPage() {
 
   const [loading, setLoading] =
     useState(false);
+
+  const totalAccountValue =
+    portfolioValue + walletBalance;
+
+  const equityAllocation =
+    totalAccountValue > 0
+      ? (portfolioValue / totalAccountValue) * 100
+      : 0;
+
+  const cashAllocation =
+    totalAccountValue > 0
+      ? (walletBalance / totalAccountValue) * 100
+      : 0;
 
   const handleAnalyze = async () => {
     if (!token) {
@@ -149,214 +173,252 @@ export default function PortfolioAnalyzerPage() {
   };
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="portfolio-analyzer-page">
+      <section className="analyzer-heading">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{
-                background:
-                  "rgba(246,246,9,0.1)",
-                border:
-                  "1px solid rgba(246,246,9,0.2)",
-              }}
-            >
-              <Brain
-                size={18}
-                style={{ color: "#f6f609" }}
-              />
-            </div>
+          <span className="analyzer-eyebrow">
+            STOCKIFY INTELLIGENCE
+          </span>
 
-            <div>
-              <h1
-                style={{
-                  fontSize: "22px",
-                  fontWeight: 700,
-                  color: "#e7fef6",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                AI Portfolio Analyzer
-              </h1>
+          <h1>AI Portfolio Analyzer</h1>
 
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "#808080",
-                  marginTop: "2px",
-                }}
-              >
-                Evaluate diversification, risk and cash utilization
-              </p>
-            </div>
-          </div>
+          <p>
+            Evaluate portfolio health,
+            diversification, cash utilization and
+            concentration risk using your current
+            Stockify account data.
+          </p>
         </div>
 
         <button
           type="button"
-          onClick={handleAnalyze}
+          className="analyzer-run-button"
+          onClick={() => void handleAnalyze()}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg"
-          style={{
-            background: loading
-              ? "#333333"
-              : "linear-gradient(135deg, #f6f609, #c5c507)",
-
-            color: loading
-              ? "#666666"
-              : "#111111",
-
-            fontSize: "13px",
-            fontWeight: 700,
-            cursor: loading
-              ? "not-allowed"
-              : "pointer",
-          }}
         >
           {loading ? (
             <>
               <RefreshCw
                 size={15}
-                className="animate-spin"
+                className="analyzer-spin"
               />
-              Analyzing...
+              Analyzing portfolio
             </>
           ) : (
             <>
               <Sparkles size={15} />
+
               {analysis
-                ? "Analyze Again"
-                : "Analyze Portfolio"}
+                ? "Analyze again"
+                : "Analyze portfolio"}
             </>
           )}
         </button>
-      </div>
+      </section>
 
-      <div
-        className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        {[
-          {
-            label: "Holdings",
-            value: holdings.length,
-          },
-          {
-            label: "Transactions",
-            value: transactions.length,
-          },
-          {
-            label: "Portfolio Value",
-            value: `$${portfolioValue.toLocaleString(
-              undefined,
-              {
-                maximumFractionDigits: 2,
-              }
-            )}`,
-          },
-          {
-            label: "Cash Balance",
-            value: `$${walletBalance.toLocaleString(
-              undefined,
-              {
-                maximumFractionDigits: 2,
-              }
-            )}`,
-          },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="p-4 rounded-xl"
-            style={{
-              background: "#1a1a1a",
-              border: "1px solid #333333",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "12px",
-                color: "#808080",
-                marginBottom: "7px",
-              }}
-            >
-              {item.label}
-            </div>
+      <section className="analyzer-account-grid">
+        <article>
+          <span>Holdings</span>
 
-            <div
-              style={{
-                fontSize: "19px",
-                fontWeight: 700,
-                color: "#e7fef6",
-              }}
-            >
-              {item.value}
-            </div>
-          </div>
-        ))}
-      </div>
+          <strong className="sf-number">
+            {holdings.length}
+          </strong>
+
+          <small>Active portfolio positions</small>
+        </article>
+
+        <article>
+          <span>Transactions</span>
+
+          <strong className="sf-number">
+            {transactions.length}
+          </strong>
+
+          <small>Recorded trading activity</small>
+        </article>
+
+        <article>
+          <span>Portfolio value</span>
+
+          <strong className="sf-number">
+            {formatCurrency(portfolioValue)}
+          </strong>
+
+          <small>
+            {equityAllocation.toFixed(1)}% of account
+          </small>
+        </article>
+
+        <article>
+          <span>Cash balance</span>
+
+          <strong className="sf-number">
+            {formatCurrency(walletBalance)}
+          </strong>
+
+          <small>
+            {cashAllocation.toFixed(1)}% of account
+          </small>
+        </article>
+      </section>
 
       {!analysis ? (
-        <div
-          className="min-h-[430px] rounded-2xl flex flex-col items-center justify-center text-center p-8"
-          style={{
-            background: "#1a1a1a",
-            border: "1px solid #333333",
-          }}
-        >
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-            style={{
-              background:
-                "rgba(246,246,9,0.1)",
-              border:
-                "1px solid rgba(246,246,9,0.2)",
-            }}
-          >
-            <Brain
-              size={29}
-              style={{ color: "#f6f609" }}
-            />
+        <section className="analyzer-empty-state">
+          <div className="analyzer-empty-icon">
+            <Brain size={30} />
           </div>
 
-          <h2
-            style={{
-              fontSize: "18px",
-              fontWeight: 650,
-              color: "#e7fef6",
-            }}
-          >
-            Generate an AI portfolio report
+          <span className="analyzer-empty-label">
+            PERSONALIZED AI REPORT
+          </span>
+
+          <h2>
+            Understand the structure of your
+            portfolio
           </h2>
 
-          <p
-            style={{
-              marginTop: "7px",
-              maxWidth: "500px",
-              fontSize: "13px",
-              color: "#808080",
-              lineHeight: 1.65,
-            }}
-          >
-            Stockify AI will evaluate your portfolio structure,
-            cash allocation, concentration risk and recent trading
-            activity.
+          <p>
+            Stockify AI will examine your holdings,
+            cash allocation, transaction history,
+            diversification and concentration risks.
           </p>
 
-          <p
-            style={{
-              marginTop: "12px",
-              fontSize: "11px",
-              color: "#4d4d4d",
-            }}
+          <div className="analyzer-preview-grid">
+            <article>
+              <Gauge size={17} />
+
+              <strong>Portfolio health</strong>
+
+              <small>
+                A combined score based on structure
+                and risk.
+              </small>
+            </article>
+
+            <article>
+              <Target size={17} />
+
+              <strong>Diversification</strong>
+
+              <small>
+                Evaluates how widely your capital is
+                distributed.
+              </small>
+            </article>
+
+            <article>
+              <Wallet size={17} />
+
+              <strong>Cash utilization</strong>
+
+              <small>
+                Reviews how much of your account is
+                currently uninvested.
+              </small>
+            </article>
+
+            <article>
+              <ShieldCheck size={17} />
+
+              <strong>Concentration</strong>
+
+              <small>
+                Identifies excessive dependence on
+                individual holdings.
+              </small>
+            </article>
+          </div>
+
+          <button
+            type="button"
+            className="analyzer-empty-action"
+            onClick={() => void handleAnalyze()}
+            disabled={loading}
           >
-            Educational analysis only. Prices are currently simulated.
-          </p>
-        </div>
+            {loading ? (
+              <>
+                <RefreshCw
+                  size={15}
+                  className="analyzer-spin"
+                />
+                Generating report
+              </>
+            ) : (
+              <>
+                <Sparkles size={15} />
+                Generate AI report
+              </>
+            )}
+          </button>
+
+          <small className="analyzer-education-note">
+            Educational analysis only. Stockify
+            trading remains simulated.
+          </small>
+        </section>
       ) : (
-        <>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="analyzer-results">
+          <section className="analyzer-result-hero">
+            <div className="analyzer-overall-score">
+              <div
+                className={`analyzer-score-ring analyzer-ring-${getScoreTone(
+                  analysis.overallScore
+                )}`}
+                style={{
+                  "--analyzer-score": `${clampScore(
+                    analysis.overallScore
+                  ) * 3.6}deg`,
+                } as React.CSSProperties}
+              >
+                <div>
+                  <strong className="sf-number">
+                    {clampScore(
+                      analysis.overallScore
+                    )}
+                  </strong>
+
+                  <span>/100</span>
+                </div>
+              </div>
+
+              <div className="analyzer-overall-copy">
+                <span>OVERALL PORTFOLIO HEALTH</span>
+
+                <h2>
+                  {analysis.overallScore >= 75
+                    ? "Strong foundation"
+                    : analysis.overallScore >= 50
+                      ? "Room for improvement"
+                      : "Significant weaknesses detected"}
+                </h2>
+
+                <p>
+                  {analysis.summary}
+                </p>
+              </div>
+            </div>
+
+            <div className="analyzer-risk-summary">
+              <span>Current risk level</span>
+
+              <strong
+                className={`analyzer-risk-pill analyzer-risk-${getRiskTone(
+                  analysis.riskLevel
+                )}`}
+              >
+                {analysis.riskLevel} Risk
+              </strong>
+
+              <small>
+                Based on the portfolio information
+                currently available to Stockify AI.
+              </small>
+            </div>
+          </section>
+
+          <section className="analyzer-score-grid">
             <ScoreCard
-              label="Overall Health"
+              label="Overall health"
               score={analysis.overallScore}
               icon={<Gauge size={18} />}
             />
@@ -368,333 +430,154 @@ export default function PortfolioAnalyzerPage() {
             />
 
             <ScoreCard
-              label="Cash Utilization"
+              label="Cash utilization"
               score={analysis.cashUtilizationScore}
               icon={<Wallet size={18} />}
             />
 
             <ScoreCard
-              label="Concentration Resistance"
+              label="Concentration resistance"
               score={analysis.concentrationScore}
               icon={<ShieldCheck size={18} />}
             />
-          </div>
+          </section>
 
-          <div
-            className="p-5 rounded-xl"
-            style={{
-              background: "#1a1a1a",
-              border: "1px solid #333333",
-            }}
-          >
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h2
-                style={{
-                  fontSize: "15px",
-                  fontWeight: 650,
-                  color: "#e7fef6",
-                }}
-              >
-                Portfolio Summary
-              </h2>
+          <section className="analyzer-two-column">
+            <article className="analyzer-list-panel analyzer-strength-panel">
+              <div className="analyzer-panel-heading">
+                <span className="analyzer-panel-icon">
+                  <CheckCircle2 size={17} />
+                </span>
 
-              <span
-                className="px-2.5 py-1 rounded-md"
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 650,
-                  color:
-                    analysis.riskLevel === "Low"
-                      ? "#10b981"
-                      : analysis.riskLevel ===
-                          "Moderate"
-                        ? "#f59e0b"
-                        : "#f43f5e",
-
-                  background:
-                    analysis.riskLevel === "Low"
-                      ? "rgba(16,185,129,0.1)"
-                      : analysis.riskLevel ===
-                          "Moderate"
-                        ? "rgba(245,158,11,0.1)"
-                        : "rgba(244,63,94,0.1)",
-                }}
-              >
-                {analysis.riskLevel} Risk
-              </span>
-            </div>
-
-            <p
-              style={{
-                fontSize: "13px",
-                lineHeight: 1.7,
-                color: "#b3b3b3",
-              }}
-            >
-              {analysis.summary}
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-4">
-            <div
-              className="p-5 rounded-xl"
-              style={{
-                background: "#1a1a1a",
-                border: "1px solid #333333",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle2
-                  size={16}
-                  style={{ color: "#10b981" }}
-                />
-
-                <h3
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 650,
-                    color: "#e7fef6",
-                  }}
-                >
-                  Strengths
-                </h3>
+                <div>
+                  <span>POSITIVE SIGNALS</span>
+                  <h2>Portfolio strengths</h2>
+                </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="analyzer-bullet-list">
                 {analysis.strengths.map(
                   (strength, index) => (
                     <div
                       key={`${strength}-${index}`}
-                      className="flex items-start gap-2.5"
                     >
-                      <span
-                        className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
-                        style={{
-                          background: "#10b981",
-                        }}
-                      />
+                      <span />
 
-                      <p
-                        style={{
-                          fontSize: "12px",
-                          lineHeight: 1.6,
-                          color: "#b3b3b3",
-                        }}
-                      >
-                        {strength}
-                      </p>
+                      <p>{strength}</p>
                     </div>
                   )
                 )}
               </div>
-            </div>
+            </article>
 
-            <div
-              className="p-5 rounded-xl"
-              style={{
-                background: "#1a1a1a",
-                border: "1px solid #333333",
-              }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <XCircle
-                  size={16}
-                  style={{ color: "#f43f5e" }}
-                />
+            <article className="analyzer-list-panel analyzer-weakness-panel">
+              <div className="analyzer-panel-heading">
+                <span className="analyzer-panel-icon">
+                  <XCircle size={17} />
+                </span>
 
-                <h3
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 650,
-                    color: "#e7fef6",
-                  }}
-                >
-                  Weaknesses
-                </h3>
+                <div>
+                  <span>AREAS TO REVIEW</span>
+                  <h2>Portfolio weaknesses</h2>
+                </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="analyzer-bullet-list">
                 {analysis.weaknesses.map(
                   (weakness, index) => (
                     <div
                       key={`${weakness}-${index}`}
-                      className="flex items-start gap-2.5"
                     >
-                      <span
-                        className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
-                        style={{
-                          background: "#f43f5e",
-                        }}
-                      />
+                      <span />
 
-                      <p
-                        style={{
-                          fontSize: "12px",
-                          lineHeight: 1.6,
-                          color: "#b3b3b3",
-                        }}
-                      >
-                        {weakness}
-                      </p>
+                      <p>{weakness}</p>
                     </div>
                   )
                 )}
               </div>
-            </div>
-          </div>
+            </article>
+          </section>
 
-          <div
-            className="p-5 rounded-xl"
-            style={{
-              background: "#1a1a1a",
-              border: "1px solid #333333",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles
-                size={16}
-                style={{ color: "#f6f609" }}
-              />
+          <section className="analyzer-recommendations-panel">
+            <div className="analyzer-panel-heading">
+              <span className="analyzer-panel-icon">
+                <Sparkles size={17} />
+              </span>
 
-              <h3
-                style={{
-                  fontSize: "14px",
-                  fontWeight: 650,
-                  color: "#e7fef6",
-                }}
-              >
-                Recommendations
-              </h3>
+              <div>
+                <span>EDUCATIONAL GUIDANCE</span>
+                <h2>Recommendations</h2>
+              </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-3">
+            <div className="analyzer-recommendation-grid">
               {analysis.recommendations.map(
                 (recommendation, index) => (
-                  <div
+                  <article
                     key={`${recommendation}-${index}`}
-                    className="p-3.5 rounded-lg"
-                    style={{
-                      background: "#111111",
-                      border: "1px solid #2d2d2d",
-                    }}
                   >
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        fontWeight: 700,
-                        color: "#f6f609",
-                        marginBottom: "5px",
-                      }}
-                    >
-                      RECOMMENDATION {index + 1}
-                    </div>
+                    <span className="analyzer-recommendation-number sf-number">
+                      {String(index + 1).padStart(
+                        2,
+                        "0"
+                      )}
+                    </span>
 
-                    <p
-                      style={{
-                        fontSize: "12px",
-                        lineHeight: 1.6,
-                        color: "#b3b3b3",
-                      }}
-                    >
-                      {recommendation}
-                    </p>
-                  </div>
+                    <p>{recommendation}</p>
+                  </article>
                 )
               )}
             </div>
-          </div>
+          </section>
 
-          <div
-            className="p-5 rounded-xl"
-            style={{
-              background: "#1a1a1a",
-              border: "1px solid #333333",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle
-                size={16}
-                style={{ color: "#f59e0b" }}
-              />
+          <section className="analyzer-risk-panel">
+            <div className="analyzer-panel-heading">
+              <span className="analyzer-panel-icon">
+                <AlertTriangle size={17} />
+              </span>
 
-              <h3
-                style={{
-                  fontSize: "14px",
-                  fontWeight: 650,
-                  color: "#e7fef6",
-                }}
-              >
-                Key Risks
-              </h3>
+              <div>
+                <span>RISK MONITOR</span>
+                <h2>Key portfolio risks</h2>
+              </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="analyzer-risk-grid">
               {analysis.keyRisks.map(
-                (risk, index) => {
-                  const color =
-                    severityColor(risk.severity);
+                (risk, index) => (
+                  <article
+                    key={`${risk.title}-${index}`}
+                    className={`analyzer-risk-card analyzer-severity-${getSeverityTone(
+                      risk.severity
+                    )}`}
+                  >
+                    <div className="analyzer-risk-card-heading">
+                      <strong>{risk.title}</strong>
 
-                  return (
-                    <div
-                      key={`${risk.title}-${index}`}
-                      className="p-4 rounded-lg"
-                      style={{
-                        background: "#111111",
-                        border: `1px solid ${color}25`,
-                      }}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <h4
-                          style={{
-                            fontSize: "13px",
-                            fontWeight: 650,
-                            color: "#e7fef6",
-                          }}
-                        >
-                          {risk.title}
-                        </h4>
-
-                        <span
-                          className="px-2 py-0.5 rounded"
-                          style={{
-                            color,
-                            background: `${color}15`,
-                            fontSize: "10px",
-                            fontWeight: 700,
-                          }}
-                        >
-                          {risk.severity}
-                        </span>
-                      </div>
-
-                      <p
-                        style={{
-                          marginTop: "7px",
-                          fontSize: "12px",
-                          lineHeight: 1.6,
-                          color: "#999999",
-                        }}
-                      >
-                        {risk.description}
-                      </p>
+                      <span>
+                        {risk.severity}
+                      </span>
                     </div>
-                  );
-                }
+
+                    <p>{risk.description}</p>
+                  </article>
+                )
               )}
             </div>
-          </div>
+          </section>
 
-          <p
-            style={{
-              fontSize: "11px",
-              color: "#4d4d4d",
-              textAlign: "center",
-            }}
-          >
-            This analysis is educational and based on simulated
-            Stockify portfolio data.
-          </p>
-        </>
+          <footer className="analyzer-disclaimer">
+            <AlertTriangle size={14} />
+
+            <p>
+              This report is generated for
+              educational use from the data
+              available inside Stockify. It is not
+              investment advice and does not
+              guarantee future performance.
+            </p>
+          </footer>
+        </div>
       )}
     </div>
   );

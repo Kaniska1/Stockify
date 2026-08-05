@@ -1,41 +1,221 @@
-import { useState, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { Zap, Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { toast } from 'sonner';
-import FundWalletModal from '../components/FundWalletModal';
+import {
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 
-function PasswordStrength({ password }: { password: string }) {
-  const checks = [
-    { label: '8+ characters', ok: password.length >= 8 },
-    { label: 'Uppercase letter', ok: /[A-Z]/.test(password) },
-    { label: 'Number', ok: /\d/.test(password) },
-    { label: 'Special character', ok: /[^a-zA-Z0-9]/.test(password) },
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  BarChart3,
+  Check,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  TrendingDown,
+  TrendingUp,
+  User,
+  Zap,
+} from "lucide-react";
+
+import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
+
+import FundWalletModal from "../components/FundWalletModal";
+import Logo from "../components/ui/Logo";
+import { useAuth } from "../context/AuthContext";
+
+interface SignupForm {
+  name: string;
+  email: string;
+  username: string;
+  password: string;
+  confirm: string;
+}
+
+interface PasswordCheck {
+  label: string;
+  valid: boolean;
+}
+
+const FEATURES = [
+  {
+    icon: Activity,
+    title: "Practice with live context",
+    description:
+      "Use current market quotes inside a simulated trading environment.",
+  },
+  {
+    icon: BarChart3,
+    title: "Track every position",
+    description:
+      "Monitor allocation, performance, transactions and portfolio risk.",
+  },
+  {
+    icon: Sparkles,
+    title: "Research with AI",
+    description:
+      "Ask personalized questions about your portfolio and investing concepts.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "No real-money risk",
+    description:
+      "Learn how trading works before putting actual capital on the line.",
+  },
+];
+
+const INDEX_CARDS = [
+  {
+    name: "S&P 500",
+    value: "5,847.29",
+    change: "+0.84%",
+    positive: true,
+  },
+  {
+    name: "NASDAQ",
+    value: "18,942.11",
+    change: "+1.23%",
+    positive: true,
+  },
+  {
+    name: "DOW",
+    value: "42,891.04",
+    change: "-0.31%",
+    positive: false,
+  },
+];
+
+const MARKET_TICKER = [
+  {
+    symbol: "AAPL",
+    price: "$214.32",
+    change: "+1.84%",
+    positive: true,
+  },
+  {
+    symbol: "NVDA",
+    price: "$891.54",
+    change: "+3.21%",
+    positive: true,
+  },
+  {
+    symbol: "TSLA",
+    price: "$248.71",
+    change: "-0.93%",
+    positive: false,
+  },
+  {
+    symbol: "MSFT",
+    price: "$432.18",
+    change: "+0.67%",
+    positive: true,
+  },
+  {
+    symbol: "GOOGL",
+    price: "$178.90",
+    change: "+2.15%",
+    positive: true,
+  },
+  {
+    symbol: "AMZN",
+    price: "$194.47",
+    change: "-1.12%",
+    positive: false,
+  },
+];
+
+function PasswordStrength({
+  password,
+}: {
+  password: string;
+}) {
+  const checks: PasswordCheck[] = [
+    {
+      label: "At least 8 characters",
+      valid: password.length >= 8,
+    },
+    {
+      label: "Uppercase letter",
+      valid: /[A-Z]/.test(password),
+    },
+    {
+      label: "Number",
+      valid: /\d/.test(password),
+    },
+    {
+      label: "Special character",
+      valid: /[^a-zA-Z0-9]/.test(
+        password
+      ),
+    },
   ];
-  const score = checks.filter(c => c.ok).length;
-  const colors = ['#4d4d4d', '#f43f5e', '#f97316', '#eab308', '#10b981'];
-  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
 
-  if (!password) return null;
+  const score = checks.filter(
+    (check) => check.valid
+  ).length;
+
+  const strengthLabel =
+    score === 4
+      ? "Strong"
+      : score === 3
+        ? "Good"
+        : score === 2
+          ? "Fair"
+          : "Weak";
+
+  if (!password) {
+    return null;
+  }
 
   return (
-    <div className="mt-2">
-      <div className="flex gap-1 mb-2">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="flex-1 h-1 rounded-full transition-all duration-300" style={{ background: i <= score ? colors[score] : '#333333' }} />
+    <div className="auth-password-strength">
+      <div className="auth-strength-heading">
+        <span>Password strength</span>
+
+        <strong
+          className={`auth-strength-label auth-strength-${score}`}
+        >
+          {strengthLabel}
+        </strong>
+      </div>
+
+      <div className="auth-strength-track">
+        {[1, 2, 3, 4].map((item) => (
+          <span
+            key={item}
+            className={
+              item <= score
+                ? `auth-strength-active auth-strength-${score}`
+                : ""
+            }
+          />
         ))}
       </div>
-      <div className="flex items-center gap-1 mb-1.5">
-        <span style={{ fontSize: '12px', color: colors[score] }}>{labels[score]}</span>
-      </div>
-      <div className="grid grid-cols-2 gap-1">
-        {checks.map(c => (
-          <div key={c.label} className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ background: c.ok ? 'rgba(16,185,129,0.2)' : '#333333' }}>
-              {c.ok && <Check size={8} style={{ color: '#10b981' }} />}
-            </div>
-            <span style={{ fontSize: '11px', color: c.ok ? '#999999' : '#4d4d4d' }}>{c.label}</span>
-          </div>
+
+      <div className="auth-password-checks">
+        {checks.map((check) => (
+          <span
+            key={check.label}
+            className={
+              check.valid
+                ? "auth-password-check-valid"
+                : ""
+            }
+          >
+            <i>
+              {check.valid && (
+                <Check size={9} />
+              )}
+            </i>
+
+            {check.label}
+          </span>
         ))}
       </div>
     </div>
@@ -43,153 +223,558 @@ function PasswordStrength({ password }: { password: string }) {
 }
 
 export default function SignupPage() {
-  const [form, setForm] = useState({ name: '', email: '', username: '', password: '', confirm: '' });
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showFundModal, setShowFundModal] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(p => ({ ...p, [k]: e.target.value }));
+  const [form, setForm] =
+    useState<SignupForm>({
+      name: "",
+      email: "",
+      username: "",
+      password: "",
+      confirm: "",
+    });
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!form.name || !form.email || !form.username || !form.password) {
-      setError('Please fill in all fields');
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [
+    showConfirmPassword,
+    setShowConfirmPassword,
+  ] = useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [showFundModal, setShowFundModal] =
+    useState(false);
+
+  const passwordChecks = useMemo(
+    () => ({
+      longEnough:
+        form.password.length >= 8,
+      uppercase:
+        /[A-Z]/.test(form.password),
+      number:
+        /\d/.test(form.password),
+      special:
+        /[^a-zA-Z0-9]/.test(
+          form.password
+        ),
+    }),
+    [form.password]
+  );
+
+  const passwordIsStrong =
+    Object.values(passwordChecks).every(
+      Boolean
+    );
+
+  const updateField =
+    (field: keyof SignupForm) =>
+    (
+      event: ChangeEvent<HTMLInputElement>
+    ) => {
+      setForm((previous) => ({
+        ...previous,
+        [field]: event.target.value,
+      }));
+    };
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    setError("");
+
+    const name = form.name.trim();
+    const email = form.email
+      .trim()
+      .toLowerCase();
+    const username =
+      form.username.trim();
+
+    if (
+      !name ||
+      !email ||
+      !username ||
+      !form.password ||
+      !form.confirm
+    ) {
+      setError(
+        "Complete every field before creating your account."
+      );
+
       return;
     }
-    if (form.password !== form.confirm) {
-      setError('Passwords do not match');
+
+    const emailPattern =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(email)) {
+      setError(
+        "Enter a valid email address."
+      );
+
       return;
     }
-    if (form.password.length < 8) {
-      setError('Password must be at least 8 characters');
+
+    if (username.length < 3) {
+      setError(
+        "Your username must contain at least 3 characters."
+      );
+
       return;
     }
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRe.test(form.email)) {
-      setError('Please enter a valid email address');
+
+    if (
+      !/^[a-zA-Z0-9_]+$/.test(username)
+    ) {
+      setError(
+        "Your username may contain only letters, numbers and underscores."
+      );
+
       return;
     }
+
+    if (!passwordIsStrong) {
+      setError(
+        "Use at least 8 characters with an uppercase letter, number and special character."
+      );
+
+      return;
+    }
+
+    if (
+      form.password !== form.confirm
+    ) {
+      setError(
+        "The passwords do not match."
+      );
+
+      return;
+    }
+
     setLoading(true);
+
     try {
-      await signup(form.name, form.email, form.username, form.password);
-      toast.success('Account created! Welcome to Stockify');
+      await signup(
+        name,
+        email,
+        username,
+        form.password
+      );
+
+      toast.success(
+        "Your Stockify account is ready"
+      );
+
       setShowFundModal(true);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Signup failed');
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to create your account"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const inputStyle = {
-    background: '#1a1a1a',
-    border: '1px solid #333333',
-    color: '#e7fef6',
-    fontSize: '14px',
-    width: '100%',
-    borderRadius: '8px',
-    padding: '10px 14px',
-    outline: 'none',
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: '#0d0d0d' }}>
-      {showFundModal && <FundWalletModal onDone={() => navigate('/dashboard')} />}
-      <div className="w-full max-w-md">
-        <div className="flex items-center gap-2.5 mb-8">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#f6f609' }}>
-            <Zap size={15} color="#0d0d0d" fill="#0d0d0d" />
-          </div>
-          <span style={{ fontSize: '17px', fontWeight: 800, color: '#e7fef6', letterSpacing: '-0.03em' }}>Stockify</span>
+    <div className="auth-page auth-signup-page">
+      {showFundModal && (
+        <FundWalletModal
+          onDone={() =>
+            navigate("/dashboard")
+          }
+        />
+      )}
+
+      <div className="auth-background-grid" />
+
+      <section className="auth-showcase">
+        <header className="auth-showcase-header">
+          <Logo />
+
+          <span className="auth-live-pill">
+            <i />
+            MARKET DATA LIVE
+          </span>
+        </header>
+
+        <div className="auth-index-strip">
+          {INDEX_CARDS.map((index) => (
+            <article key={index.name}>
+              <span>{index.name}</span>
+
+              <strong className="sf-number">
+                {index.value}
+              </strong>
+
+              <small
+                className={
+                  index.positive
+                    ? "positive"
+                    : "negative"
+                }
+              >
+                {index.change}
+              </small>
+            </article>
+          ))}
         </div>
 
-        <div className="rounded-2xl p-8" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#e7fef6', marginBottom: '4px', letterSpacing: '-0.02em' }}>Create your account</h2>
-          <p style={{ fontSize: '13px', color: '#999999', marginBottom: '24px' }}>
-            Already have an account?{' '}
-            <Link to="/login" style={{ color: '#f8f83a', textDecoration: 'none' }}>Sign in</Link>
+        <div className="auth-showcase-content">
+          <span className="auth-showcase-label">
+            <Sparkles size={13} />
+            BUILD YOUR MARKET SKILLS
+          </span>
+
+          <h1>
+            Learn the market.
+            <br />
+            Without paying tuition to it.
+          </h1>
+
+          <p>
+            Create a Stockify account and
+            practise investing with simulated
+            funds, real quote context,
+            portfolio analytics and AI-powered
+            educational research.
           </p>
 
+          <div className="auth-feature-grid">
+            {FEATURES.map(
+              ({
+                icon: Icon,
+                title,
+                description,
+              }) => (
+                <article key={title}>
+                  <span>
+                    <Icon size={16} />
+                  </span>
+
+                  <div>
+                    <strong>{title}</strong>
+
+                    <small>
+                      {description}
+                    </small>
+                  </div>
+                </article>
+              )
+            )}
+          </div>
+        </div>
+
+        <div className="auth-market-visual">
+          <div className="auth-chart-grid" />
+
+          <svg
+            viewBox="0 0 900 240"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient
+                id="signupChartGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor="#a855f7"
+                  stopOpacity="0.32"
+                />
+
+                <stop
+                  offset="100%"
+                  stopColor="#a855f7"
+                  stopOpacity="0"
+                />
+              </linearGradient>
+            </defs>
+
+            <path
+              d="M0 192 C70 166 118 181 176 145 C238 106 282 140 346 112 C414 82 459 113 522 89 C591 62 644 76 711 43 C777 12 831 47 900 22 L900 240 L0 240 Z"
+              fill="url(#signupChartGradient)"
+            />
+
+            <path
+              d="M0 192 C70 166 118 181 176 145 C238 106 282 140 346 112 C414 82 459 113 522 89 C591 62 644 76 711 43 C777 12 831 47 900 22"
+              fill="none"
+              stroke="#b66bff"
+              strokeWidth="3"
+            />
+          </svg>
+
+          <div className="auth-chart-badge">
+            <Zap size={14} />
+
+            <div>
+              <span>New account balance</span>
+
+              <strong>$100,000 demo</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="auth-ticker">
+          <div>
+            {[
+              ...MARKET_TICKER,
+              ...MARKET_TICKER,
+            ].map((stock, index) => (
+              <span
+                key={`${stock.symbol}-${index}`}
+              >
+                <strong>
+                  {stock.symbol}
+                </strong>
+
+                <i className="sf-number">
+                  {stock.price}
+                </i>
+
+                <small
+                  className={
+                    stock.positive
+                      ? "positive"
+                      : "negative"
+                  }
+                >
+                  {stock.positive ? (
+                    <TrendingUp size={11} />
+                  ) : (
+                    <TrendingDown size={11} />
+                  )}
+
+                  {stock.change}
+                </small>
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="auth-form-side">
+        <div className="auth-mobile-logo">
+          <Logo />
+        </div>
+
+        <div className="auth-form-card auth-signup-card">
+          <div className="auth-form-heading">
+            <span>CREATE YOUR ACCOUNT</span>
+
+            <h2>Start trading smarter</h2>
+
+            <p>
+              Build a simulated portfolio and
+              learn how markets behave.
+            </p>
+          </div>
+
           {error && (
-            <div className="flex items-center gap-2.5 p-3 rounded-lg mb-5" style={{ background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.2)' }}>
-              <AlertCircle size={14} style={{ color: '#f43f5e', flexShrink: 0 }} />
-              <span style={{ fontSize: '13px', color: '#f43f5e' }}>{error}</span>
+            <div className="auth-error-banner">
+              <AlertCircle size={15} />
+
+              <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '5px' }}>Full Name</label>
-                <input style={inputStyle} placeholder="John Doe" value={form.name} onChange={set('name')}
-                  onFocus={e => { e.target.style.borderColor = '#f6f609'; }}
-                  onBlur={e => { e.target.style.borderColor = '#333333'; }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '5px' }}>Username</label>
-                <input style={inputStyle} placeholder="johndoe" value={form.username} onChange={set('username')}
-                  onFocus={e => { e.target.style.borderColor = '#f6f609'; }}
-                  onBlur={e => { e.target.style.borderColor = '#333333'; }} />
-              </div>
+          <form
+            className="auth-form"
+            onSubmit={handleSubmit}
+          >
+            <div className="auth-form-grid">
+              <label className="auth-field">
+                <span>Full name</span>
+
+                <div>
+                  <User size={15} />
+
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={updateField(
+                      "name"
+                    )}
+                    placeholder="John Doe"
+                    autoComplete="name"
+                    disabled={loading}
+                  />
+                </div>
+              </label>
+
+              <label className="auth-field">
+                <span>Username</span>
+
+                <div>
+                  <User size={15} />
+
+                  <input
+                    type="text"
+                    value={form.username}
+                    onChange={updateField(
+                      "username"
+                    )}
+                    placeholder="johndoe"
+                    autoComplete="username"
+                    disabled={loading}
+                  />
+                </div>
+              </label>
             </div>
 
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '5px' }}>Email Address</label>
-              <input type="email" style={inputStyle} placeholder="john@example.com" value={form.email} onChange={set('email')}
-                onFocus={e => { e.target.style.borderColor = '#f6f609'; }}
-                onBlur={e => { e.target.style.borderColor = '#333333'; }} />
-            </div>
+            <label className="auth-field">
+              <span>Email address</span>
 
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '5px' }}>Password</label>
-              <div className="relative">
-                <input type={showPw ? 'text' : 'password'} style={{ ...inputStyle, paddingRight: '40px' }} placeholder="Create a strong password" value={form.password} onChange={set('password')}
-                  onFocus={e => { e.target.style.borderColor = '#f6f609'; }}
-                  onBlur={e => { e.target.style.borderColor = '#333333'; }} />
-                <button type="button" onClick={() => setShowPw(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#808080' }}>
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+              <div>
+                <Mail size={15} />
+
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={updateField(
+                    "email"
+                  )}
+                  placeholder="john@example.com"
+                  autoComplete="email"
+                  disabled={loading}
+                />
+              </div>
+            </label>
+
+            <label className="auth-field">
+              <span>Password</span>
+
+              <div>
+                <Lock size={15} />
+
+                <input
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={form.password}
+                  onChange={updateField(
+                    "password"
+                  )}
+                  placeholder="Create a strong password"
+                  autoComplete="new-password"
+                  disabled={loading}
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowPassword(
+                      (current) =>
+                        !current
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={15} />
+                  ) : (
+                    <Eye size={15} />
+                  )}
                 </button>
               </div>
-              <PasswordStrength password={form.password} />
-            </div>
 
-            <div>
-              <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '5px' }}>Confirm Password</label>
-              <input type="password" style={inputStyle} placeholder="Repeat password" value={form.confirm} onChange={set('confirm')}
-                onFocus={e => { e.target.style.borderColor = '#f6f609'; }}
-                onBlur={e => { e.target.style.borderColor = '#333333'; }} />
-            </div>
+              <PasswordStrength
+                password={form.password}
+              />
+            </label>
 
-            <div className="pt-1">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all"
-                style={{
-                  background: loading ? 'rgba(246,246,9,0.5)' : 'linear-gradient(135deg, #f6f609, #c5c507)',
-                  color: 'white', fontSize: '14px', fontWeight: 600,
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {loading ? (
-                  <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                ) : (
-                  <>Create Account <ArrowRight size={15} /></>
-                )}
-              </button>
-            </div>
+            <label className="auth-field">
+              <span>Confirm password</span>
+
+              <div>
+                <ShieldCheck size={15} />
+
+                <input
+                  type={
+                    showConfirmPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={form.confirm}
+                  onChange={updateField(
+                    "confirm"
+                  )}
+                  placeholder="Repeat your password"
+                  autoComplete="new-password"
+                  disabled={loading}
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword(
+                      (current) =>
+                        !current
+                    )
+                  }
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={15} />
+                  ) : (
+                    <Eye size={15} />
+                  )}
+                </button>
+              </div>
+            </label>
+
+            <button
+              type="submit"
+              className="auth-primary-button"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="auth-button-spinner" />
+              ) : (
+                <>
+                  Create account
+                  <ArrowRight size={15} />
+                </>
+              )}
+            </button>
           </form>
 
-          <p style={{ fontSize: '12px', color: '#4d4d4d', textAlign: 'center', marginTop: '16px' }}>
-            By creating an account you agree to our Terms of Service and Privacy Policy.
+          <p className="auth-account-link">
+            Already have an account?{" "}
+            <Link to="/login">
+              Sign in
+            </Link>
+          </p>
+
+          <p className="auth-legal-copy">
+            By creating an account, you agree
+            to use Stockify as an educational
+            simulated-trading application.
           </p>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
