@@ -1,0 +1,144 @@
+.sf-container {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.sf-logo-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sf-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sf-logo-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: #ffffff;
+  background: linear-gradient(145deg, #b26cff, #7441de);
+  box-shadow: 0 10px 30px rgba(155, 108, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.sf-logo-word {
+  font-family: 'Manrope', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #f8f7fb;
+}
+
+.sf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
+  white-space: nowrap;
+}
+
+.sf-button:hover {
+  transform: translateY(-1px);
+}
+
+.sf-button:active {
+  transform: translateY(0);
+}
+
+.sf-button-primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, #a855f7 0%, #7c4dff 100%);
+  box-shadow: 0 13px 38px rgba(139, 92, 246, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.sf-button-primary:hover {
+  box-shadow: 0 18px 48px rgba(139, 92, 246, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.sf-button-secondary {
+  color: #e7e2ee;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.sf-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.065);
+  border-color: rgba(192, 132, 252, 0.28);
+}
+
+.sf-button-ghost {
+  color: #a9a3b3;
+  background: transparent;
+}
+
+.sf-button-sm {
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sf-button-md {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sf-button-lg {
+  min-height: 50px;
+  padding: 0 23px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sf-glass-panel {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(145deg, rgba(21, 17, 31, 0.84), rgba(11, 8, 18, 0.78));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 24px 70px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.sf-glass-panel-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(145deg, rgba(192, 132, 252, 0.5), rgba(255, 255, 255, 0.04), rgba(168, 85, 247, 0.16));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.sf-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  color: #d7b8ff;
+  background: rgba(155, 108, 255, 0.13);
+  border: 1px solid rgba(192, 132, 252, 0.22);
+  font-family: 'Manrope', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.sf-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
