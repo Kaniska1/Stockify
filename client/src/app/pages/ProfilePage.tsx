@@ -1,235 +1,844 @@
-import { useState, FormEvent } from 'react';
-import { Camera, User, Lock, Shield, AlertCircle, Check } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useApp } from '../context/AppContext';
-import { toast } from 'sonner';
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+
+import {
+  AlertCircle,
+  Camera,
+  Check,
+  Lock,
+  Mail,
+  Shield,
+  User,
+  Wallet,
+} from "lucide-react";
+
+import { toast } from "sonner";
+
+import { useAuth } from "../context/AuthContext";
+import { useApp } from "../context/AppContext";
+
+type ProfileTab = "profile" | "security";
+
+interface ProfileForm {
+  name: string;
+  email: string;
+  username: string;
+}
+
+interface PasswordForm {
+  current: string;
+  next: string;
+  confirm: string;
+}
+
+function formatCurrency(value: number): string {
+  const absolute = Math.abs(value);
+
+  if (absolute >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2)}M`;
+  }
+
+  if (absolute >= 1_000) {
+    return `$${(value / 1_000).toFixed(1)}K`;
+  }
+
+  return `$${value.toFixed(2)}`;
+}
 
 export default function ProfilePage() {
-  const { user, updateProfile, changePassword } = useAuth();
-  const { walletBalance, portfolioValue, transactions, holdings } = useApp();
+  const {
+    user,
+    updateProfile,
+    changePassword,
+  } = useAuth();
 
-  const [profileForm, setProfileForm] = useState({ name: user?.name ?? '', email: user?.email ?? '', username: user?.username ?? '' });
-  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [pwLoading, setPwLoading] = useState(false);
-  const [profileError, setProfileError] = useState('');
-  const [pwError, setPwError] = useState('');
-  const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+  const {
+    walletBalance,
+    portfolioValue,
+    transactions,
+    holdings,
+  } = useApp();
 
-  const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U';
+  const [activeTab, setActiveTab] =
+    useState<ProfileTab>("profile");
 
-  const handleProfileSave = async (e: FormEvent) => {
-    e.preventDefault();
-    setProfileError('');
-    if (!profileForm.name || !profileForm.email || !profileForm.username) {
-      setProfileError('All fields are required');
+  const [profileForm, setProfileForm] =
+    useState<ProfileForm>({
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+      username: user?.username ?? "",
+    });
+
+  const [passwordForm, setPasswordForm] =
+    useState<PasswordForm>({
+      current: "",
+      next: "",
+      confirm: "",
+    });
+
+  const [profileLoading, setProfileLoading] =
+    useState(false);
+
+  const [passwordLoading, setPasswordLoading] =
+    useState(false);
+
+  const [avatarLoading, setAvatarLoading] =
+    useState(false);
+
+  const [profileError, setProfileError] =
+    useState("");
+
+  const [passwordError, setPasswordError] =
+    useState("");
+
+  useEffect(() => {
+    setProfileForm({
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+      username: user?.username ?? "",
+    });
+  }, [
+    user?.name,
+    user?.email,
+    user?.username,
+  ]);
+
+  const initials =
+    user?.name
+      ?.split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "U";
+
+  const memberSince = user?.createdAt
+    ? new Date(
+        user.createdAt
+      ).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : "Not available";
+
+  const totalAccountValue =
+    portfolioValue + walletBalance;
+
+  const handleProfileSave = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    setProfileError("");
+
+    const name = profileForm.name.trim();
+    const email = profileForm.email.trim();
+    const username =
+      profileForm.username.trim();
+
+    if (!name || !email || !username) {
+      setProfileError(
+        "Name, email and username are required."
+      );
+
       return;
     }
+
     setProfileLoading(true);
+
     try {
-      await updateProfile({ name: profileForm.name, email: profileForm.email, username: profileForm.username });
-      toast.success('Profile updated successfully!');
-    } catch (err: unknown) {
-      setProfileError(err instanceof Error ? err.message : 'Failed to update profile');
+      await updateProfile({
+        name,
+        email,
+        username,
+      });
+
+      toast.success(
+        "Profile updated successfully"
+      );
+    } catch (error) {
+      setProfileError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update profile"
+      );
     } finally {
       setProfileLoading(false);
     }
   };
 
-  const handlePasswordChange = async (e: FormEvent) => {
-    e.preventDefault();
-    setPwError('');
-    if (!pwForm.current || !pwForm.next || !pwForm.confirm) { setPwError('All fields required'); return; }
-    if (pwForm.next !== pwForm.confirm) { setPwError('New passwords do not match'); return; }
-    if (pwForm.next.length < 8) { setPwError('Password must be at least 8 characters'); return; }
-    setPwLoading(true);
+  const handlePasswordChange = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    setPasswordError("");
+
+    if (
+      !passwordForm.current ||
+      !passwordForm.next ||
+      !passwordForm.confirm
+    ) {
+      setPasswordError(
+        "All password fields are required."
+      );
+
+      return;
+    }
+
+    if (
+      passwordForm.next !==
+      passwordForm.confirm
+    ) {
+      setPasswordError(
+        "The new passwords do not match."
+      );
+
+      return;
+    }
+
+    if (passwordForm.next.length < 8) {
+      setPasswordError(
+        "The new password must contain at least 8 characters."
+      );
+
+      return;
+    }
+
+    if (
+      passwordForm.current ===
+      passwordForm.next
+    ) {
+      setPasswordError(
+        "The new password must be different from the current password."
+      );
+
+      return;
+    }
+
+    setPasswordLoading(true);
+
     try {
-      await changePassword(pwForm.current, pwForm.next);
-      setPwForm({ current: '', next: '', confirm: '' });
-      toast.success('Password changed successfully!');
-    } catch (err: unknown) {
-      setPwError(err instanceof Error ? err.message : 'Failed to change password');
+      await changePassword(
+        passwordForm.current,
+        passwordForm.next
+      );
+
+      setPasswordForm({
+        current: "",
+        next: "",
+        confirm: "",
+      });
+
+      toast.success(
+        "Password changed successfully"
+      );
+    } catch (error) {
+      setPasswordError(
+        error instanceof Error
+          ? error.message
+          : "Failed to change password"
+      );
     } finally {
-      setPwLoading(false);
+      setPasswordLoading(false);
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleAvatarChange = async (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error(
+        "Please select a valid image file."
+      );
+
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(
+        "The profile image must be smaller than 2 MB."
+      );
+
+      return;
+    }
+
+    setAvatarLoading(true);
+
     const reader = new FileReader();
+
     reader.onload = async () => {
       try {
-        await updateProfile({ avatar: reader.result as string });
-        toast.success('Avatar updated!');
-      } catch {
-        toast.error('Failed to update avatar');
+        if (
+          typeof reader.result !== "string"
+        ) {
+          throw new Error(
+            "Unable to read the selected image"
+          );
+        }
+
+        await updateProfile({
+          avatar: reader.result,
+        });
+
+        toast.success(
+          "Profile image updated"
+        );
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to update profile image"
+        );
+      } finally {
+        setAvatarLoading(false);
       }
     };
+
+    reader.onerror = () => {
+      setAvatarLoading(false);
+
+      toast.error(
+        "Unable to read the selected image."
+      );
+    };
+
     reader.readAsDataURL(file);
   };
 
-  const inputStyle = {
-    background: '#0d0d0d',
-    border: '1px solid #333333',
-    color: '#e7fef6',
-    fontSize: '14px',
-    width: '100%',
-    borderRadius: '8px',
-    padding: '10px 14px',
-    outline: 'none',
-  };
-
-  const stats = [
-    { label: 'Portfolio Value', value: `$${portfolioValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}` },
-    { label: 'Cash Balance', value: `$${walletBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}` },
-    { label: 'Total Transactions', value: transactions.length.toString() },
-    { label: 'Stocks Held', value: holdings.length.toString() },
-    { label: 'Member Since', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A' },
-  ];
-
   return (
-    <div className="p-6 max-w-3xl">
-      <div className="mb-6">
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#e7fef6', letterSpacing: '-0.02em' }}>Profile</h1>
-        <p style={{ fontSize: '13px', color: '#808080', marginTop: '2px' }}>Manage your account settings</p>
-      </div>
+    <div className="profile-page">
+      <section className="profile-heading">
+        <div>
+          <span className="profile-eyebrow">
+            ACCOUNT SETTINGS
+          </span>
 
-      {/* Avatar + stats */}
-      <div className="p-5 rounded-xl mb-5 flex flex-wrap items-center gap-5" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-        <div className="relative">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden" style={{ background: 'linear-gradient(135deg, #f6f609, #c5c507)' }}>
+          <h1>Profile</h1>
+
+          <p>
+            Manage your personal information,
+            account identity and login security.
+          </p>
+        </div>
+      </section>
+
+      <section className="profile-identity-card">
+        <div className="profile-avatar-wrap">
+          <div className="profile-avatar">
             {user?.avatar ? (
-              <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+              <img
+                src={user.avatar}
+                alt={`${user.name} profile`}
+              />
             ) : (
-              <span style={{ fontSize: '20px', fontWeight: 700, color: 'white' }}>{initials}</span>
+              <span>{initials}</span>
+            )}
+
+            {avatarLoading && (
+              <div className="profile-avatar-loading">
+                <span />
+              </div>
             )}
           </div>
-          <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer" style={{ background: '#f6f609' }}>
-            <Camera size={11} color="white" />
-            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+
+          <label
+            className="profile-avatar-button"
+            title="Change profile image"
+          >
+            <Camera size={13} />
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) =>
+                void handleAvatarChange(event)
+              }
+              disabled={avatarLoading}
+            />
           </label>
         </div>
-        <div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: '#e7fef6' }}>{user?.name}</div>
-          <div style={{ fontSize: '13px', color: '#808080' }}>@{user?.username} · {user?.email}</div>
+
+        <div className="profile-identity-copy">
+          <span>STOCKIFY INVESTOR</span>
+
+          <h2>
+            {user?.name ?? "Stockify User"}
+          </h2>
+
+          <div>
+            <span>
+              @{user?.username ?? "investor"}
+            </span>
+
+            <i />
+
+            <span>
+              {user?.email ??
+                "No email available"}
+            </span>
+          </div>
+
+          <small>
+            Member since {memberSince}
+          </small>
         </div>
 
-        <div className="flex flex-wrap gap-4 ml-auto">
-          {stats.map(s => (
-            <div key={s.label} className="text-right">
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#e7fef6' }}>{s.value}</div>
-              <div style={{ fontSize: '11px', color: '#808080' }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+        <div className="profile-account-value">
+          <span>Total account value</span>
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl mb-5 w-fit" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-        {([['profile', 'Profile', <User size={14} />], ['security', 'Security', <Lock size={14} />]] as const).map(([tab, label, icon]) => (
+          <strong className="sf-number">
+            {formatCurrency(
+              totalAccountValue
+            )}
+          </strong>
+
+          <small>
+            Portfolio and available cash
+          </small>
+        </div>
+      </section>
+
+      <section className="profile-stats-grid">
+        <article>
+          <span>
+            <Wallet size={15} />
+            Portfolio value
+          </span>
+
+          <strong className="sf-number">
+            {formatCurrency(
+              portfolioValue
+            )}
+          </strong>
+
+          <small>
+            Current holdings value
+          </small>
+        </article>
+
+        <article>
+          <span>
+            <Wallet size={15} />
+            Cash balance
+          </span>
+
+          <strong className="sf-number">
+            {formatCurrency(
+              walletBalance
+            )}
+          </strong>
+
+          <small>
+            Available simulated funds
+          </small>
+        </article>
+
+        <article>
+          <span>
+            <User size={15} />
+            Holdings
+          </span>
+
+          <strong className="sf-number">
+            {holdings.length}
+          </strong>
+
+          <small>
+            Active positions
+          </small>
+        </article>
+
+        <article>
+          <span>
+            <Check size={15} />
+            Transactions
+          </span>
+
+          <strong className="sf-number">
+            {transactions.length}
+          </strong>
+
+          <small>
+            Completed orders
+          </small>
+        </article>
+      </section>
+
+      <section className="profile-settings-layout">
+        <aside className="profile-tabs">
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
-            style={{
-              fontSize: '13px', fontWeight: 500,
-              background: activeTab === tab ? '#333333' : 'transparent',
-              color: activeTab === tab ? '#e7fef6' : '#999999',
-            }}
+            type="button"
+            className={
+              activeTab === "profile"
+                ? "profile-tab-active"
+                : ""
+            }
+            onClick={() =>
+              setActiveTab("profile")
+            }
           >
-            {icon} {label}
-          </button>
-        ))}
-      </div>
+            <span>
+              <User size={16} />
+            </span>
 
-      {activeTab === 'profile' && (
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <div className="flex items-center gap-2 mb-5">
-            <User size={16} style={{ color: '#f6f609' }} />
-            <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#e7fef6' }}>Personal Information</h3>
-          </div>
-
-          {profileError && (
-            <div className="flex items-center gap-2 p-3 rounded-lg mb-4" style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.2)' }}>
-              <AlertCircle size={14} style={{ color: '#f43f5e' }} />
-              <span style={{ fontSize: '13px', color: '#f43f5e' }}>{profileError}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleProfileSave} className="space-y-4">
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '6px' }}>Full Name</label>
-              <input style={inputStyle} value={profileForm.name} onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))}
-                onFocus={e => { e.target.style.borderColor = '#f6f609'; }} onBlur={e => { e.target.style.borderColor = '#333333'; }} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '6px' }}>Email</label>
-                <input type="email" style={inputStyle} value={profileForm.email} onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))}
-                  onFocus={e => { e.target.style.borderColor = '#f6f609'; }} onBlur={e => { e.target.style.borderColor = '#333333'; }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '6px' }}>Username</label>
-                <input style={inputStyle} value={profileForm.username} onChange={e => setProfileForm(p => ({ ...p, username: e.target.value }))}
-                  onFocus={e => { e.target.style.borderColor = '#f6f609'; }} onBlur={e => { e.target.style.borderColor = '#333333'; }} />
-              </div>
-            </div>
-            <div className="pt-1">
-              <button type="submit" disabled={profileLoading}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all"
-                style={{ background: profileLoading ? 'rgba(246,246,9,0.4)' : 'linear-gradient(135deg, #f6f609, #c5c507)', color: 'white', fontSize: '14px', fontWeight: 600, cursor: profileLoading ? 'not-allowed' : 'pointer' }}>
-                {profileLoading ? <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : <Check size={15} />}
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+              <strong>
+                Personal information
+              </strong>
 
-      {activeTab === 'security' && (
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <div className="flex items-center gap-2 mb-5">
-            <Shield size={16} style={{ color: '#f6f609' }} />
-            <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#e7fef6' }}>Change Password</h3>
+              <small>
+                Name, email and username
+              </small>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={
+              activeTab === "security"
+                ? "profile-tab-active"
+                : ""
+            }
+            onClick={() =>
+              setActiveTab("security")
+            }
+          >
+            <span>
+              <Shield size={16} />
+            </span>
+
+            <div>
+              <strong>Security</strong>
+
+              <small>
+                Update your account password
+              </small>
+            </div>
+          </button>
+
+          <div className="profile-security-note">
+            <Shield size={16} />
+
+            <div>
+              <strong>
+                Keep your account secure
+              </strong>
+
+              <p>
+                Never share your password or
+                authentication token with anyone.
+              </p>
+            </div>
           </div>
+        </aside>
 
-          {pwError && (
-            <div className="flex items-center gap-2 p-3 rounded-lg mb-4" style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.2)' }}>
-              <AlertCircle size={14} style={{ color: '#f43f5e' }} />
-              <span style={{ fontSize: '13px', color: '#f43f5e' }}>{pwError}</span>
-            </div>
+        <div className="profile-settings-panel">
+          {activeTab === "profile" ? (
+            <>
+              <header className="profile-panel-heading">
+                <span className="profile-panel-icon">
+                  <User size={17} />
+                </span>
+
+                <div>
+                  <span>
+                    PROFILE DETAILS
+                  </span>
+
+                  <h2>
+                    Personal information
+                  </h2>
+
+                  <p>
+                    This information appears
+                    throughout your Stockify
+                    account.
+                  </p>
+                </div>
+              </header>
+
+              {profileError && (
+                <div className="profile-error-banner">
+                  <AlertCircle size={15} />
+
+                  <span>
+                    {profileError}
+                  </span>
+                </div>
+              )}
+
+              <form
+                className="profile-form"
+                onSubmit={handleProfileSave}
+              >
+                <label className="profile-field profile-field-full">
+                  <span>Full name</span>
+
+                  <div>
+                    <User size={15} />
+
+                    <input
+                      type="text"
+                      value={profileForm.name}
+                      onChange={(event) =>
+                        setProfileForm(
+                          (previous) => ({
+                            ...previous,
+                            name:
+                              event.target
+                                .value,
+                          })
+                        )
+                      }
+                      autoComplete="name"
+                    />
+                  </div>
+                </label>
+
+                <label className="profile-field">
+                  <span>Email address</span>
+
+                  <div>
+                    <Mail size={15} />
+
+                    <input
+                      type="email"
+                      value={
+                        profileForm.email
+                      }
+                      onChange={(event) =>
+                        setProfileForm(
+                          (previous) => ({
+                            ...previous,
+                            email:
+                              event.target
+                                .value,
+                          })
+                        )
+                      }
+                      autoComplete="email"
+                    />
+                  </div>
+                </label>
+
+                <label className="profile-field">
+                  <span>Username</span>
+
+                  <div>
+                    <User size={15} />
+
+                    <input
+                      type="text"
+                      value={
+                        profileForm.username
+                      }
+                      onChange={(event) =>
+                        setProfileForm(
+                          (previous) => ({
+                            ...previous,
+                            username:
+                              event.target
+                                .value,
+                          })
+                        )
+                      }
+                      autoComplete="username"
+                    />
+                  </div>
+                </label>
+
+                <div className="profile-form-footer">
+                  <p>
+                    Your email and username
+                    must remain unique across
+                    Stockify.
+                  </p>
+
+                  <button
+                    type="submit"
+                    disabled={profileLoading}
+                  >
+                    {profileLoading ? (
+                      <span className="profile-button-spinner" />
+                    ) : (
+                      <Check size={15} />
+                    )}
+
+                    Save changes
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <header className="profile-panel-heading">
+                <span className="profile-panel-icon">
+                  <Lock size={17} />
+                </span>
+
+                <div>
+                  <span>
+                    LOGIN SECURITY
+                  </span>
+
+                  <h2>Change password</h2>
+
+                  <p>
+                    Choose a strong password
+                    that you do not use on
+                    another service.
+                  </p>
+                </div>
+              </header>
+
+              {passwordError && (
+                <div className="profile-error-banner">
+                  <AlertCircle size={15} />
+
+                  <span>
+                    {passwordError}
+                  </span>
+                </div>
+              )}
+
+              <form
+                className="profile-form profile-password-form"
+                onSubmit={
+                  handlePasswordChange
+                }
+              >
+                <label className="profile-field profile-field-full">
+                  <span>
+                    Current password
+                  </span>
+
+                  <div>
+                    <Lock size={15} />
+
+                    <input
+                      type="password"
+                      value={
+                        passwordForm.current
+                      }
+                      onChange={(event) =>
+                        setPasswordForm(
+                          (previous) => ({
+                            ...previous,
+                            current:
+                              event.target
+                                .value,
+                          })
+                        )
+                      }
+                      autoComplete="current-password"
+                    />
+                  </div>
+                </label>
+
+                <label className="profile-field">
+                  <span>New password</span>
+
+                  <div>
+                    <Lock size={15} />
+
+                    <input
+                      type="password"
+                      value={
+                        passwordForm.next
+                      }
+                      onChange={(event) =>
+                        setPasswordForm(
+                          (previous) => ({
+                            ...previous,
+                            next:
+                              event.target
+                                .value,
+                          })
+                        )
+                      }
+                      autoComplete="new-password"
+                    />
+                  </div>
+                </label>
+
+                <label className="profile-field">
+                  <span>
+                    Confirm new password
+                  </span>
+
+                  <div>
+                    <Shield size={15} />
+
+                    <input
+                      type="password"
+                      value={
+                        passwordForm.confirm
+                      }
+                      onChange={(event) =>
+                        setPasswordForm(
+                          (previous) => ({
+                            ...previous,
+                            confirm:
+                              event.target
+                                .value,
+                          })
+                        )
+                      }
+                      autoComplete="new-password"
+                    />
+                  </div>
+                </label>
+
+                <div className="profile-password-rules">
+                  <strong>
+                    Password requirements
+                  </strong>
+
+                  <span>
+                    At least 8 characters
+                  </span>
+
+                  <span>
+                    Different from your
+                    current password
+                  </span>
+                </div>
+
+                <div className="profile-form-footer">
+                  <p>
+                    Changing your password may
+                    require you to sign in again
+                    on other devices.
+                  </p>
+
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                  >
+                    {passwordLoading ? (
+                      <span className="profile-button-spinner" />
+                    ) : (
+                      <Lock size={15} />
+                    )}
+
+                    Update password
+                  </button>
+                </div>
+              </form>
+            </>
           )}
-
-          <form onSubmit={handlePasswordChange} className="space-y-4 max-w-sm">
-            {[
-              { key: 'current', label: 'Current Password' },
-              { key: 'next', label: 'New Password' },
-              { key: 'confirm', label: 'Confirm New Password' },
-            ].map(({ key, label }) => (
-              <div key={key}>
-                <label style={{ fontSize: '12px', fontWeight: 500, color: '#b3b3b3', display: 'block', marginBottom: '6px' }}>{label}</label>
-                <input
-                  type="password"
-                  style={inputStyle}
-                  value={pwForm[key as keyof typeof pwForm]}
-                  onChange={e => setPwForm(p => ({ ...p, [key]: e.target.value }))}
-                  onFocus={e => { e.target.style.borderColor = '#f6f609'; }}
-                  onBlur={e => { e.target.style.borderColor = '#333333'; }}
-                />
-              </div>
-            ))}
-            <div className="pt-1">
-              <button type="submit" disabled={pwLoading}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all"
-                style={{ background: pwLoading ? 'rgba(246,246,9,0.4)' : 'linear-gradient(135deg, #f6f609, #c5c507)', color: 'white', fontSize: '14px', fontWeight: 600, cursor: pwLoading ? 'not-allowed' : 'pointer' }}>
-                {pwLoading ? <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : <Lock size={15} />}
-                Update Password
-              </button>
-            </div>
-          </form>
         </div>
-      )}
+      </section>
     </div>
   );
 }

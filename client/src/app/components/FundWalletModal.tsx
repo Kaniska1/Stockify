@@ -1,171 +1,365 @@
-import { useState } from 'react';
-import { DollarSign, ArrowRight, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useApp } from '../context/AppContext';
+import { useState } from "react";
 
-const PRESETS = [500, 1000, 5000, 10000, 25000, 50000];
+import {
+  ArrowRight,
+  CheckCircle2,
+  DollarSign,
+  ShieldCheck,
+  Wallet,
+  X,
+} from "lucide-react";
 
-interface Props {
+import {
+  AnimatePresence,
+  motion,
+} from "motion/react";
+
+import { toast } from "sonner";
+
+import { useApp } from "../context/AppContext";
+
+const PRESET_AMOUNTS = [
+  500,
+  1000,
+  5000,
+  10000,
+  25000,
+  50000,
+];
+
+interface FundWalletModalProps {
   onDone: () => void;
 }
 
-export default function FundWalletModal({ onDone }: Props) {
-  const [selected, setSelected] = useState<number | null>(null);
-  const [custom, setCustom] = useState('');
-  const [loading, setLoading] = useState(false);
+function formatPreset(
+  amount: number
+): string {
+  if (amount >= 1000) {
+    return `$${amount / 1000}K`;
+  }
+
+  return `$${amount}`;
+}
+
+function formatCurrency(
+  amount: number
+): string {
+  return amount.toLocaleString(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }
+  );
+}
+
+export default function FundWalletModal({
+  onDone,
+}: FundWalletModalProps) {
   const { depositFunds } = useApp();
 
-  const amount = custom !== '' ? parseFloat(custom.replace(/,/g, '')) : selected;
-  const valid = amount !== null && !isNaN(amount) && amount > 0;
+  const [selectedAmount, setSelectedAmount] =
+    useState<number | null>(null);
 
-  const handleFund = async () => {
-    if (!valid || amount === null) return;
+  const [customAmount, setCustomAmount] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const parsedCustomAmount =
+    Number.parseFloat(
+      customAmount.replace(/,/g, "")
+    );
+
+  const amount =
+    customAmount.trim() !== ""
+      ? parsedCustomAmount
+      : selectedAmount;
+
+  const validAmount =
+    amount !== null &&
+    Number.isFinite(amount) &&
+    amount > 0;
+
+  const handlePresetSelect = (
+    preset: number
+  ) => {
+    setSelectedAmount(preset);
+    setCustomAmount("");
+  };
+
+  const handleCustomChange = (
+    value: string
+  ) => {
+    const sanitizedValue = value
+      .replace(/[^0-9.]/g, "")
+      .replace(
+        /(\..*)\./g,
+        "$1"
+      );
+
+    setSelectedAmount(null);
+    setCustomAmount(sanitizedValue);
+  };
+
+  const handleDeposit = async () => {
+    if (
+      !validAmount ||
+      amount === null ||
+      loading
+    ) {
+      return;
+    }
+
     setLoading(true);
+
     try {
       await depositFunds(amount);
+
+      toast.success(
+        `${formatCurrency(
+          amount
+        )} added to your wallet`
+      );
+
       onDone();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to add funds"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCustomChange = (v: string) => {
-    setSelected(null);
-    setCustom(v.replace(/[^0-9.]/g, ''));
-  };
-
-  const fmt = (n: number) =>
-    n >= 1000 ? `$${(n / 1000).toFixed(0)}K` : `$${n}`;
-
   return (
     <AnimatePresence>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+      <motion.div
+        className="fund-wallet-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onMouseDown={onDone}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.94, y: 16 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94 }}
-          transition={{ duration: 0.28 }}
-          className="w-full max-w-md rounded-2xl p-7"
-          style={{ background: '#141414', border: '1px solid #2a2a2a', boxShadow: '0 24px 60px rgba(0,0,0,0.5)' }}
+        <motion.section
+          className="fund-wallet-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="fund-wallet-title"
+          initial={{
+            opacity: 0,
+            scale: 0.96,
+            y: 18,
+          }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            y: 0,
+          }}
+          exit={{
+            opacity: 0,
+            scale: 0.96,
+            y: 10,
+          }}
+          transition={{
+            duration: 0.22,
+          }}
+          onMouseDown={(event) =>
+            event.stopPropagation()
+          }
         >
-          {/* Header */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(246,246,9,0.12)', border: '1px solid rgba(246,246,9,0.2)' }}>
-                <DollarSign size={18} style={{ color: '#f6f609' }} />
-              </div>
+          <header className="fund-wallet-header">
+            <div className="fund-wallet-title">
+              <span className="fund-wallet-title-icon">
+                <Wallet size={18} />
+              </span>
+
               <div>
-                <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#e7fef6', letterSpacing: '-0.025em', lineHeight: 1.2 }}>
-                  Add Funds
+                <span>
+                  SIMULATED WALLET
+                </span>
+
+                <h2 id="fund-wallet-title">
+                  Add funds
                 </h2>
-                <p style={{ fontSize: '12px', color: '#555', marginTop: '2px' }}>
-                  Deposit money into your trading wallet
+
+                <p>
+                  Increase your virtual
+                  trading balance.
                 </p>
               </div>
             </div>
+
             <button
+              type="button"
+              className="fund-wallet-close"
               onClick={onDone}
-              className="p-1.5 rounded-lg transition-colors"
-              style={{ color: '#444' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#888'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444'; }}
+              aria-label="Close wallet modal"
             >
-              <X size={16} />
+              <X size={17} />
+            </button>
+          </header>
+
+          <div className="fund-wallet-body">
+            <section className="fund-wallet-balance-note">
+              <span>
+                <ShieldCheck size={15} />
+              </span>
+
+              <div>
+                <strong>
+                  Demo funds only
+                </strong>
+
+                <p>
+                  Deposits in Stockify are
+                  simulated and do not move
+                  real money.
+                </p>
+              </div>
+            </section>
+
+            <div className="fund-wallet-section-heading">
+              <span>
+                SELECT AN AMOUNT
+              </span>
+
+              <small>
+                Quick deposit
+              </small>
+            </div>
+
+            <div className="fund-wallet-presets">
+              {PRESET_AMOUNTS.map(
+                (preset) => (
+                  <button
+                    type="button"
+                    key={preset}
+                    className={
+                      selectedAmount ===
+                      preset
+                        ? "fund-wallet-preset-active"
+                        : ""
+                    }
+                    onClick={() =>
+                      handlePresetSelect(
+                        preset
+                      )
+                    }
+                    disabled={loading}
+                  >
+                    {formatPreset(
+                      preset
+                    )}
+                  </button>
+                )
+              )}
+            </div>
+
+            <label className="fund-wallet-custom">
+              <span>
+                Custom amount
+              </span>
+
+              <div
+                className={
+                  customAmount
+                    ? "fund-wallet-custom-active"
+                    : ""
+                }
+              >
+                <DollarSign size={16} />
+
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={customAmount}
+                  onChange={(event) =>
+                    handleCustomChange(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Enter amount"
+                  disabled={loading}
+                />
+              </div>
+            </label>
+
+            <AnimatePresence>
+              {validAmount &&
+                amount !== null && (
+                  <motion.div
+                    className="fund-wallet-summary"
+                    initial={{
+                      opacity: 0,
+                      y: -5,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: -5,
+                    }}
+                  >
+                    <div>
+                      <span>
+                        Deposit amount
+                      </span>
+
+                      <strong className="sf-number">
+                        {formatCurrency(
+                          amount
+                        )}
+                      </strong>
+                    </div>
+
+                    <span className="fund-wallet-summary-icon">
+                      <CheckCircle2
+                        size={18}
+                      />
+                    </span>
+                  </motion.div>
+                )}
+            </AnimatePresence>
+
+            <button
+              type="button"
+              className="fund-wallet-submit"
+              onClick={() =>
+                void handleDeposit()
+              }
+              disabled={
+                !validAmount || loading
+              }
+            >
+              {loading ? (
+                <span className="fund-wallet-spinner" />
+              ) : (
+                <>
+                  Add funds
+                  <ArrowRight size={15} />
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="fund-wallet-cancel"
+              onClick={onDone}
+              disabled={loading}
+            >
+              Cancel
             </button>
           </div>
-
-          {/* Preset amounts */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            {PRESETS.map(p => (
-              <button
-                key={p}
-                onClick={() => { setSelected(p); setCustom(''); }}
-                className="py-2.5 rounded-xl transition-all"
-                style={{
-                  background: selected === p ? 'rgba(246,246,9,0.14)' : '#1e1e1e',
-                  border: `1px solid ${selected === p ? 'rgba(246,246,9,0.4)' : '#2a2a2a'}`,
-                  color: selected === p ? '#f6f609' : '#888',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                }}
-                onMouseEnter={e => { if (selected !== p) (e.currentTarget as HTMLElement).style.borderColor = '#3a3a3a'; }}
-                onMouseLeave={e => { if (selected !== p) (e.currentTarget as HTMLElement).style.borderColor = '#2a2a2a'; }}
-              >
-                {fmt(p)}
-              </button>
-            ))}
-          </div>
-
-          {/* Custom amount */}
-          <div className="mb-5">
-            <label style={{ fontSize: '11px', fontWeight: 700, color: '#555', display: 'block', marginBottom: '7px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Custom Amount
-            </label>
-            <div className="relative">
-              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#555', fontSize: '15px', fontWeight: 600 }}>$</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                placeholder="Enter amount"
-                value={custom}
-                onChange={e => handleCustomChange(e.target.value)}
-                className="w-full rounded-xl outline-none transition-all"
-                style={{ background: '#1e1e1e', border: `1px solid ${custom && selected === null ? 'rgba(246,246,9,0.4)' : '#2a2a2a'}`, color: '#e7fef6', fontSize: '14px', padding: '11px 14px 11px 30px' }}
-                onFocus={e => { (e.target as HTMLInputElement).style.borderColor = 'rgba(246,246,9,0.4)'; setSelected(null); }}
-                onBlur={e => { if (!custom) (e.target as HTMLInputElement).style.borderColor = '#2a2a2a'; }}
-              />
-            </div>
-          </div>
-
-          {/* Summary */}
-          {valid && amount !== null && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-between p-3.5 rounded-xl mb-5"
-              style={{ background: 'rgba(246,246,9,0.06)', border: '1px solid rgba(246,246,9,0.15)' }}
-            >
-              <span style={{ fontSize: '13px', color: '#888' }}>Funds to be added</span>
-              <span style={{ fontSize: '15px', fontWeight: 800, color: '#f6f609', letterSpacing: '-0.02em' }}>
-                ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </motion.div>
-          )}
-
-          {/* Actions */}
-          <button
-            onClick={handleFund}
-            disabled={!valid || loading}
-            className="w-full py-3.5 rounded-xl flex items-center justify-center gap-2 mb-3 transition-all"
-            style={{
-              background: valid && !loading ? '#f6f609' : 'rgba(246,246,9,0.2)',
-              color: valid && !loading ? '#0d0d0d' : '#666',
-              fontSize: '14px', fontWeight: 800,
-              cursor: valid && !loading ? 'pointer' : 'not-allowed',
-              letterSpacing: '-0.01em',
-            }}
-            onMouseEnter={e => { if (valid && !loading) (e.currentTarget as HTMLElement).style.background = '#fafa6b'; }}
-            onMouseLeave={e => { if (valid && !loading) (e.currentTarget as HTMLElement).style.background = '#f6f609'; }}
-          >
-            {loading
-              ? <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: 'rgba(0,0,0,0.2)', borderTopColor: '#0d0d0d' }} />
-              : <><span>Add Funds & Start Trading</span><ArrowRight size={15} /></>}
-          </button>
-
-          <button
-            onClick={onDone}
-            className="w-full py-2.5 rounded-xl text-center transition-colors"
-            style={{ fontSize: '13px', color: '#444', background: 'transparent' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#888'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444'; }}
-          >
-            Cancel
-          </button>
-        </motion.div>
-      </div>
+        </motion.section>
+      </motion.div>
     </AnimatePresence>
   );
 }

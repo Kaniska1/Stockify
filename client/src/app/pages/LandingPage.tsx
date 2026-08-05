@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { getStockLogo } from "../lib/getStockLogo";
 import {
   ArrowRight,
   Bot,
@@ -78,8 +79,13 @@ export default function LandingPage() {
             <Link to="/login" className="sf-login-link">
               Log in
             </Link>
-            <Button to="/signup" size="sm">
+            <Button
+              href="/signup"
+              size="sm"
+              className="sf-nav-cta"
+            >
               Get started
+              <ArrowRight size={13} />
             </Button>
           </div>
         </Container>
@@ -90,7 +96,13 @@ export default function LandingPage() {
           <Container className="sf-hero-layout">
             <div className="sf-hero-copy">
               <div className="sf-hero-badge-row">
-                <Badge>New</Badge>
+                <Badge
+                  variant="purple"
+                  size="sm"
+                  className="sf-landing-new-badge"
+                >
+                  New
+                </Badge>
                 <span>Live market data powered by Finnhub</span>
                 <ArrowRight size={14} />
               </div>
@@ -106,11 +118,23 @@ export default function LandingPage() {
               </p>
 
               <div className="sf-hero-actions">
-                <Button to="/signup" size="lg">
-                  Start investing free <ArrowRight size={17} />
+                <Button
+                  to="/signup"
+                  size="lg"
+                  className="sf-hero-primary-action"
+                >
+                  <span>Start investing free</span>
+                  <ArrowRight size={16} />
                 </Button>
-                <Button to="/stocks" size="lg" variant="secondary">
+
+                <Button
+                  to="/stocks"
+                  size="lg"
+                  variant="ghost"
+                  className="sf-hero-secondary-action"
+                >
                   Explore markets
+                  <ArrowRight size={15} />
                 </Button>
               </div>
 
@@ -213,8 +237,13 @@ export default function LandingPage() {
               <p>
                 Ask portfolio-aware questions, compare companies and surface concentration risk without leaving your investing workspace.
               </p>
-              <Button to="/assistant" variant="secondary">
-                Explore AI research <ArrowRight size={16} />
+              <Button
+                to="/assistant"
+                variant="ghost"
+                className="sf-ai-link-button"
+              >
+                Explore AI research
+                <ArrowRight size={15} />
               </Button>
             </div>
 

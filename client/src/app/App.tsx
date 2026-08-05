@@ -102,15 +102,25 @@ export default function App() {
             <AppRoutes />
 
             <Toaster
-              theme="dark"
               position="bottom-right"
+              richColors={false}
+              closeButton
+              expand={false}
+              visibleToasts={4}
               toastOptions={{
-                style: {
-                  background: '#100d18',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: '#f7f6fb',
-                  fontSize: '12px',
-                  boxShadow: '0 20px 60px rgba(0,0,0,.35)',
+                duration: 4000,
+                classNames: {
+                  toast: "stockify-toast",
+                  title: "stockify-toast-title",
+                  description: "stockify-toast-description",
+                  actionButton: "stockify-toast-action",
+                  cancelButton: "stockify-toast-cancel",
+                  closeButton: "stockify-toast-close",
+                  success: "stockify-toast-success",
+                  error: "stockify-toast-error",
+                  warning: "stockify-toast-warning",
+                  info: "stockify-toast-info",
+                  loading: "stockify-toast-loading",
                 },
               }}
             />

@@ -1,0 +1,283 @@
+/* =========================================================
+   STOCKIFY TOASTS
+========================================================= */
+
+.stockify-toast {
+  min-width: 330px;
+
+  padding: 14px 15px !important;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.08) !important;
+
+  border-radius: 15px !important;
+
+  color: #eee9f3 !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 15, 29, 0.98),
+      rgba(10, 8, 15, 0.98)
+    ) !important;
+
+  box-shadow:
+    0 24px 65px
+      rgba(0, 0, 0, 0.38),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.035) !important;
+
+  backdrop-filter: blur(16px);
+
+  font-family: inherit !important;
+}
+
+/* =========================================================
+   TITLE AND DESCRIPTION
+========================================================= */
+
+.stockify-toast-title {
+  color: #f2edf7 !important;
+
+  font-size: 10px !important;
+  font-weight: 750 !important;
+
+  line-height: 1.45 !important;
+}
+
+.stockify-toast-description {
+  margin-top: 3px !important;
+
+  color: #7d7687 !important;
+
+  font-size: 8px !important;
+  line-height: 1.55 !important;
+}
+
+/* =========================================================
+   DEFAULT ICON
+========================================================= */
+
+.stockify-toast [data-icon] {
+  width: 28px !important;
+  height: 28px !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  flex: 0 0 28px !important;
+
+  border-radius: 9px !important;
+}
+
+.stockify-toast [data-icon] svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+/* =========================================================
+   SUCCESS
+========================================================= */
+
+.stockify-toast-success {
+  border-color:
+    rgba(34, 197, 94, 0.14) !important;
+}
+
+.stockify-toast-success [data-icon] {
+  color: #4ade80 !important;
+
+  background:
+    rgba(34, 197, 94, 0.075) !important;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.stockify-toast-error {
+  border-color:
+    rgba(239, 68, 68, 0.15) !important;
+}
+
+.stockify-toast-error [data-icon] {
+  color: #fb7185 !important;
+
+  background:
+    rgba(239, 68, 68, 0.075) !important;
+}
+
+/* =========================================================
+   WARNING
+========================================================= */
+
+.stockify-toast-warning {
+  border-color:
+    rgba(245, 158, 11, 0.15) !important;
+}
+
+.stockify-toast-warning [data-icon] {
+  color: #fbbf24 !important;
+
+  background:
+    rgba(245, 158, 11, 0.075) !important;
+}
+
+/* =========================================================
+   INFORMATION
+========================================================= */
+
+.stockify-toast-info {
+  border-color:
+    rgba(192, 132, 252, 0.14) !important;
+}
+
+.stockify-toast-info [data-icon] {
+  color: #c084fc !important;
+
+  background:
+    rgba(155, 108, 255, 0.075) !important;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.stockify-toast-loading {
+  border-color:
+    rgba(192, 132, 252, 0.13) !important;
+}
+
+.stockify-toast-loading [data-icon] {
+  color: #c084fc !important;
+
+  background:
+    rgba(155, 108, 255, 0.065) !important;
+}
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.stockify-toast-close {
+  top: 8px !important;
+  right: 8px !important;
+  left: auto !important;
+
+  width: 24px !important;
+  height: 24px !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.055) !important;
+
+  border-radius: 8px !important;
+
+  color: #655e6e !important;
+
+  background:
+    rgba(255, 255, 255, 0.025) !important;
+
+  transform: none !important;
+
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease !important;
+}
+
+.stockify-toast-close:hover {
+  color: #f1ebf6 !important;
+
+  border-color:
+    rgba(192, 132, 252, 0.14) !important;
+
+  background:
+    rgba(155, 108, 255, 0.055) !important;
+}
+
+/* =========================================================
+   ACTION BUTTON
+========================================================= */
+
+.stockify-toast-action {
+  min-height: 30px !important;
+
+  padding: 0 10px !important;
+
+  border:
+    1px solid
+    rgba(192, 132, 252, 0.18) !important;
+
+  border-radius: 9px !important;
+
+  color: #ffffff !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #9a59ef,
+      #7144df
+    ) !important;
+
+  font-size: 8px !important;
+  font-weight: 750 !important;
+}
+
+/* =========================================================
+   CANCEL BUTTON
+========================================================= */
+
+.stockify-toast-cancel {
+  min-height: 30px !important;
+
+  padding: 0 10px !important;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.06) !important;
+
+  border-radius: 9px !important;
+
+  color: #817a8a !important;
+
+  background:
+    rgba(255, 255, 255, 0.025) !important;
+
+  font-size: 8px !important;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 520px) {
+  [data-sonner-toaster] {
+    right: 10px !important;
+    left: 10px !important;
+
+    width: auto !important;
+  }
+
+  .stockify-toast {
+    width: 100% !important;
+    min-width: 0;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+  .stockify-toast-close {
+    transition: none !important;
+  }
+}

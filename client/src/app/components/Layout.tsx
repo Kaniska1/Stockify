@@ -1,301 +1,504 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
 import {
-  LayoutDashboard, TrendingUp, BarChart3, Briefcase,
-  History, Zap, LogOut, Menu, X, Search,
-  Wallet, ChevronRight, Bell, Plus, Bookmark, Bot, Brain,
-} from 'lucide-react';
-import NotificationDropdown from './NotificationDropdown';
-import { useNotifications } from '../context/NotificationContext';
-import { useAuth } from '../context/AuthContext';
-import { useApp } from '../context/AppContext';
-import CommandPalette from './CommandPalette';
-import FundWalletModal from './FundWalletModal';
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+
+import {
+  BarChart3,
+  Bell,
+  Bookmark,
+  Bot,
+  Brain,
+  Briefcase,
+  ChevronRight,
+  History,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Plus,
+  Search,
+  TrendingUp,
+  Wallet,
+  X,
+} from "lucide-react";
+
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router";
+
+import CommandPalette from "./CommandPalette";
+import FundWalletModal from "./FundWalletModal";
+import NotificationDropdown from "./NotificationDropdown";
+import Logo from "./ui/Logo";
+
+import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationContext";
+
+interface LayoutProps {
+  children: ReactNode;
+}
 
 interface NavItem {
   label: string;
+  description: string;
   path: string;
-  icon: React.ReactNode;
+  icon: typeof LayoutDashboard;
 }
 
-const NAV_ITEMS: NavItem[] = [
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Dashboard",
-    path: "/dashboard",
-    icon: <LayoutDashboard size={18} />,
+    label: "Workspace",
+    items: [
+      {
+        label: "Dashboard",
+        description: "Account overview",
+        path: "/dashboard",
+        icon: LayoutDashboard,
+      },
+      {
+        label: "Markets",
+        description: "Browse stocks",
+        path: "/stocks",
+        icon: TrendingUp,
+      },
+      {
+        label: "Watchlist",
+        description: "Saved companies",
+        path: "/watchlist",
+        icon: Bookmark,
+      },
+      {
+        label: "Portfolio",
+        description: "Positions and returns",
+        path: "/portfolio",
+        icon: Briefcase,
+      },
+      {
+        label: "Transactions",
+        description: "Trading history",
+        path: "/transactions",
+        icon: History,
+      },
+    ],
   },
   {
-    label: "Markets",
-    path: "/stocks",
-    icon: <TrendingUp size={18} />,
-  },
-  {
-    label: "Watchlist",
-    path: "/watchlist",
-    icon: <Bookmark size={18} />,
-  },
-  {
-    label: "Portfolio",
-    path: "/portfolio",
-    icon: <Briefcase size={18} />,
-  },
-  {
-    label: "Transactions",
-    path: "/transactions",
-    icon: <History size={18} />,
-  },
-  {
-    label: "AI Assistant",
-    path: "/assistant",
-    icon: <Bot size={18} />,
-  },
-  {
-    label: "Portfolio Analyzer",
-    path: "/portfolio-analyzer",
-    icon: <Brain size={18} />,
-  },
-  {
-    label: "Analysis",
-    path: "/market",
-    icon: <BarChart3 size={18} />,
+    label: "Intelligence",
+    items: [
+      {
+        label: "AI Assistant",
+        description: "Ask Stockify AI",
+        path: "/assistant",
+        icon: Bot,
+      },
+      {
+        label: "Portfolio Analyzer",
+        description: "AI risk report",
+        path: "/portfolio-analyzer",
+        icon: Brain,
+      },
+      {
+        label: "Market Analysis",
+        description: "Breadth and sectors",
+        path: "/market",
+        icon: BarChart3,
+      },
+    ],
   },
 ];
 
-function formatCurrency(n: number) {
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  if (n >= 1e3) return `$${(n / 1e3).toFixed(2)}K`;
-  return `$${n.toFixed(2)}`;
+function formatCurrency(value: number): string {
+  const absolute = Math.abs(value);
+
+  if (absolute >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2)}M`;
+  }
+
+  if (absolute >= 1_000) {
+    return `$${(value / 1_000).toFixed(1)}K`;
+  }
+
+  return `$${value.toFixed(2)}`;
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [cmdOpen, setCmdOpen] = useState(false);
-  const [depositOpen, setDepositOpen] = useState(false);
+export default function Layout({
+  children,
+}: LayoutProps) {
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
+
+  const [commandOpen, setCommandOpen] =
+    useState(false);
+
+  const [fundModalOpen, setFundModalOpen] =
+    useState(false);
+
   const [
-    notificationOpen,
-    setNotificationOpen,
+    notificationsOpen,
+    setNotificationsOpen,
   ] = useState(false);
+
   const { user, logout } = useAuth();
   const { walletBalance } = useApp();
   const { unreadCount } = useNotifications();
+
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setCmdOpen(true);
+    const handleShortcut = (
+      event: KeyboardEvent
+    ) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "k"
+      ) {
+        event.preventDefault();
+        setCommandOpen(true);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+
+    window.addEventListener(
+      "keydown",
+      handleShortcut
+    );
+
+    return () =>
+      window.removeEventListener(
+        "keydown",
+        handleShortcut
+      );
   }, []);
 
   useEffect(() => {
     setSidebarOpen(false);
+    setNotificationsOpen(false);
   }, [location.pathname]);
 
-  const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U';
+  const initials =
+    user?.name
+      ?.split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "U";
+
+  const isRouteActive = (
+    path: string
+  ): boolean =>
+    location.pathname === path ||
+    location.pathname.startsWith(
+      `${path}/`
+    );
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#0d0d0d', color: '#e7fef6' }}>
-      {/* Mobile overlay */}
+    <div className="app-shell">
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+        <button
+          type="button"
+          className="app-sidebar-overlay"
+          onClick={() =>
+            setSidebarOpen(false)
+          }
+          aria-label="Close navigation"
         />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-60 flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{ background: '#111111', borderRight: '1px solid #333333' }}
+        className={`app-sidebar ${
+          sidebarOpen
+            ? "app-sidebar-open"
+            : ""
+        }`}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 px-5 py-5 border-b" style={{ borderColor: '#333333' }}>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#f6f609' }}>
-            <Zap size={16} color="#0d0d0d" fill="#0d0d0d" />
-          </div>
-          <div>
-            <div style={{ color: '#e7fef6', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.03em' }}>Stockify</div>
-            <div style={{ color: '#3d3d3d', fontSize: '10px', fontWeight: 500 }}>Markets</div>
-          </div>
+        <header className="app-sidebar-header">
+          <Logo />
+
           <button
-            className="ml-auto lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-            style={{ color: '#999999' }}
+            type="button"
+            className="app-sidebar-close"
+            onClick={() =>
+              setSidebarOpen(false)
+            }
+            aria-label="Close sidebar"
           >
             <X size={18} />
           </button>
-        </div>
+        </header>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map(item => {
-            const active = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group"
-                style={{
-                  background: active ? 'rgba(246,246,9,0.12)' : 'transparent',
-                  color: active ? '#f8f83a' : '#999999',
-                }}
-                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
-                onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+        <div className="app-sidebar-scroll">
+          <nav className="app-navigation">
+            {NAV_GROUPS.map((group) => (
+              <section
+                key={group.label}
+                className="app-nav-group"
               >
-                <span style={{ color: active ? '#f8f83a' : '#808080' }}>{item.icon}</span>
-                <span style={{ fontSize: '14px', fontWeight: active ? 500 : 400 }}>{item.label}</span>
-                {active && <ChevronRight size={14} className="ml-auto" style={{ color: '#f6f609' }} />}
-              </Link>
-            );
-          })}
-        </nav>
+                <span className="app-nav-label">
+                  {group.label}
+                </span>
 
-        {/* Wallet */}
-        <div className="mx-3 mb-3 p-3 rounded-xl" style={{ background: 'rgba(246,246,9,0.08)', border: '1px solid rgba(246,246,9,0.2)' }}>
-          <div className="flex items-center gap-2 mb-1">
-            <Wallet size={14} style={{ color: '#f6f609' }} />
-            <span style={{ fontSize: '12px', color: '#999999' }}>Available Cash</span>
-          </div>
-          <div className="flex items-center justify-between mt-0.5">
-            <div style={{ fontSize: '18px', fontWeight: 600, color: '#e7fef6', letterSpacing: '-0.02em' }}>
-              {formatCurrency(walletBalance)}
-            </div>
-            <button
-              onClick={() => setDepositOpen(true)}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg transition-all"
-              style={{ background: 'rgba(246,246,9,0.15)', border: '1px solid rgba(246,246,9,0.3)', color: '#f6f609', fontSize: '11px', fontWeight: 700 }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(246,246,9,0.25)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(246,246,9,0.15)'; }}
-              title="Add funds"
-            >
-              <Plus size={11} />
-              Add
-            </button>
-          </div>
-        </div>
-        {depositOpen && <FundWalletModal onDone={() => setDepositOpen(false)} />}
+                <div className="app-nav-list">
+                  {group.items.map(
+                    ({
+                      label,
+                      description,
+                      path,
+                      icon: Icon,
+                    }) => {
+                      const active =
+                        isRouteActive(path);
 
-        {/* Profile */}
-        <div className="p-3 border-t" style={{ borderColor: '#333333' }}>
-          <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #f6f609, #c5c507)', fontSize: '13px', fontWeight: 600, color: 'white' }}
-            >
-              {user?.avatar ? <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : initials}
+                      return (
+                        <Link
+                          key={path}
+                          to={path}
+                          className={`app-nav-item ${
+                            active
+                              ? "app-nav-item-active"
+                              : ""
+                          }`}
+                        >
+                          <span className="app-nav-icon">
+                            <Icon size={17} />
+                          </span>
+
+                          <span className="app-nav-copy">
+                            <strong>
+                              {label}
+                            </strong>
+
+                            <small>
+                              {description}
+                            </small>
+                          </span>
+
+                          {active && (
+                            <ChevronRight
+                              size={14}
+                              className="app-nav-chevron"
+                            />
+                          )}
+                        </Link>
+                      );
+                    }
+                  )}
+                </div>
+              </section>
+            ))}
+          </nav>
+
+          <section className="app-wallet-card">
+            <div className="app-wallet-heading">
+              <span className="app-wallet-icon">
+                <Wallet size={15} />
+              </span>
+
+              <div>
+                <span>
+                  AVAILABLE CASH
+                </span>
+
+                <small>
+                  Simulated wallet
+                </small>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <div style={{ fontSize: '13px', fontWeight: 500, color: '#e7fef6' }} className="truncate">{user?.name}</div>
-              <div style={{ fontSize: '11px', color: '#808080' }} className="truncate">@{user?.username}</div>
-            </div>
+
+            <strong className="sf-number">
+              {formatCurrency(
+                walletBalance
+              )}
+            </strong>
+
             <button
-              onClick={() => { logout(); navigate('/login'); }}
-              className="p-1.5 rounded-lg transition-colors"
-              style={{ color: '#808080' }}
-              title="Logout"
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#f43f5e'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#808080'; }}
+              type="button"
+              onClick={() =>
+                setFundModalOpen(true)
+              }
             >
-              <LogOut size={15} />
+              <Plus size={13} />
+              Add funds
             </button>
-          </div>
+          </section>
         </div>
+
+        <footer className="app-sidebar-footer">
+          <Link
+            to="/profile"
+            className="app-sidebar-profile"
+          >
+            <span className="app-profile-avatar">
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt=""
+                />
+              ) : (
+                initials
+              )}
+            </span>
+
+            <span className="app-profile-copy">
+              <strong>
+                {user?.name ??
+                  "Stockify User"}
+              </strong>
+
+              <small>
+                @
+                {user?.username ??
+                  "investor"}
+              </small>
+            </span>
+          </Link>
+
+          <button
+            type="button"
+            className="app-logout-button"
+            onClick={handleLogout}
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut size={16} />
+          </button>
+        </footer>
       </aside>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
-        <header
-          className="flex items-center gap-4 px-5 py-3.5 flex-shrink-0"
-          style={{ background: 'rgba(8,12,20,0.9)', borderBottom: '1px solid #333333', backdropFilter: 'blur(12px)' }}
-        >
+      <div className="app-main">
+        <header className="app-topbar">
           <button
-            className="lg:hidden p-1.5 rounded-lg"
-            onClick={() => setSidebarOpen(true)}
-            style={{ color: '#999999' }}
+            type="button"
+            className="app-mobile-menu"
+            onClick={() =>
+              setSidebarOpen(true)
+            }
+            aria-label="Open navigation"
           >
             <Menu size={20} />
           </button>
 
-          {/* Search */}
           <button
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg flex-1 max-w-xs transition-colors text-left"
-            style={{ background: '#1a1a1a', border: '1px solid #333333', color: '#808080' }}
-            onClick={() => setCmdOpen(true)}
+            type="button"
+            className="app-search-trigger"
+            onClick={() =>
+              setCommandOpen(true)
+            }
           >
-            <Search size={14} />
-            <span style={{ fontSize: '13px' }}>Search stocks, pages...</span>
-            <kbd className="ml-auto flex items-center gap-1 text-xs" style={{ color: '#4d4d4d', background: '#333333', padding: '2px 6px', borderRadius: '4px' }}>
-              ⌘K
+            <Search size={15} />
+
+            <span>
+              Search stocks, pages and tools
+            </span>
+
+            <kbd>
+              <span>⌘</span>K
             </kbd>
           </button>
 
-          <div className="flex items-center gap-2 ml-auto">
-            <div className="relative">
+          <div className="app-topbar-actions">
+            <button
+              type="button"
+              className="app-wallet-mobile-button"
+              onClick={() =>
+                setFundModalOpen(true)
+              }
+            >
+              <Wallet size={15} />
+
+              <span className="sf-number">
+                {formatCurrency(
+                  walletBalance
+                )}
+              </span>
+
+              <Plus size={13} />
+            </button>
+
+            <div className="app-notification-wrap">
               <button
                 type="button"
-                className="p-2 rounded-lg relative transition-colors"
-                style={{
-                  color: notificationOpen
-                    ? '#f6f609'
-                    : '#999999',
-
-                  background: notificationOpen
-                    ? 'rgba(246,246,9,0.08)'
-                    : 'transparent',
-                }}
+                className={`app-icon-button ${
+                  notificationsOpen
+                    ? "app-icon-button-active"
+                    : ""
+                }`}
                 onClick={() =>
-                  setNotificationOpen(prev => !prev)
+                  setNotificationsOpen(
+                    (current) => !current
+                  )
                 }
-                title="Notifications"
+                aria-label="Notifications"
               >
                 <Bell size={17} />
 
                 {unreadCount > 0 && (
-                  <span
-                    className="absolute -top-1 -right-1 min-w-[17px] h-[17px] rounded-full flex items-center justify-center"
-                    style={{
-                      padding: '0 4px',
-                      background: '#f43f5e',
-                      border: '2px solid #111111',
-                      color: 'white',
-                      fontSize: '9px',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {unreadCount > 99 ? '99+' : unreadCount}
+                  <span className="app-notification-count">
+                    {unreadCount > 99
+                      ? "99+"
+                      : unreadCount}
                   </span>
                 )}
               </button>
 
               <NotificationDropdown
-                open={notificationOpen}
-                onClose={() => setNotificationOpen(false)}
+                open={notificationsOpen}
+                onClose={() =>
+                  setNotificationsOpen(
+                    false
+                  )
+                }
               />
             </div>
-            <Link to="/profile">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
-                style={{ background: 'linear-gradient(135deg, #f6f609, #c5c507)', fontSize: '12px', fontWeight: 600, color: 'white' }}
-              >
-                {user?.avatar ? <img src={user.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : initials}
-              </div>
+
+            <Link
+              to="/profile"
+              className="app-topbar-profile"
+              aria-label="Open profile"
+            >
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt=""
+                />
+              ) : (
+                initials
+              )}
             </Link>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="app-content">
           {children}
         </main>
       </div>
 
-      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
+      {fundModalOpen && (
+        <FundWalletModal
+          onDone={() =>
+            setFundModalOpen(false)
+          }
+        />
+      )}
+
+      <CommandPalette
+        open={commandOpen}
+        onClose={() =>
+          setCommandOpen(false)
+        }
+      />
     </div>
   );
 }

@@ -1,34 +1,48 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { Link } from "react-router";
+import type { ReactNode } from "react";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type BadgeVariant =
+  | "neutral"
+  | "purple"
+  | "success"
+  | "danger"
+  | "warning"
+  | "info";
+
+type BadgeSize =
+  | "sm"
+  | "md";
+
+interface BadgeProps {
   children: ReactNode;
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "sm" | "md" | "lg";
-  to?: string;
+  variant?: BadgeVariant;
+  size?: BadgeSize;
+  dot?: boolean;
+  className?: string;
 }
 
-export default function Button({
+export default function Badge({
   children,
-  variant = "primary",
+  variant = "neutral",
   size = "md",
-  to,
+  dot = false,
   className = "",
-  ...props
-}: ButtonProps) {
-  const classes = `sf-button sf-button-${variant} sf-button-${size} ${className}`.trim();
-
-  if (to) {
-    return (
-      <Link to={to} className={classes}>
-        {children}
-      </Link>
-    );
-  }
-
+}: BadgeProps) {
   return (
-    <button className={classes} {...props}>
+    <span
+      className={[
+        "sf-badge",
+        `sf-badge-${variant}`,
+        `sf-badge-${size}`,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {dot && (
+        <span className="sf-badge-dot" />
+      )}
+
       {children}
-    </button>
+    </span>
   );
 }

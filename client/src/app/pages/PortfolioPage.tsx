@@ -1,202 +1,856 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router';
-import { TrendingUp, TrendingDown, Briefcase } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { useApp } from '../context/AppContext';
-import { STOCKS } from '../data/stocks';
+import { useMemo } from "react";
+import { getStockLogo } from "../lib/getStockLogo";
+import { Link } from "react-router";
+import {
+  ArrowUpRight,
+  Briefcase,
+  ChevronRight,
+  Sparkles,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 
-const COLORS = ['#f6f609', '#c5c507', '#06b6d4', '#10b981', '#f59e0b', '#f97316', '#ef4444', '#ec4899', '#84cc16', '#14b8a6'];
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-function fmt(n: number) {
-  if (Math.abs(n) >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-  if (Math.abs(n) >= 1e3) return `$${(n / 1e3).toFixed(1)}K`;
-  return `$${n.toFixed(2)}`;
+import { useApp } from "../context/AppContext";
+import { STOCKS } from "../data/stocks";
+
+const ALLOCATION_COLORS = [
+  "#a855f7",
+  "#8b5cf6",
+  "#c084fc",
+  "#6d5dfc",
+  "#22c55e",
+  "#06b6d4",
+  "#f59e0b",
+  "#ef4444",
+];
+
+function formatCurrency(value: number): string {
+  const absolute = Math.abs(value);
+
+  if (absolute >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2)}M`;
+  }
+
+  if (absolute >= 1_000) {
+    return `$${(value / 1_000).toFixed(1)}K`;
+  }
+
+  return `$${value.toFixed(2)}`;
 }
 
 export default function PortfolioPage() {
-  const { livePrices, holdings, portfolioValue, totalInvested, totalPnl, walletBalance } = useApp();
+  const {
+    livePrices,
+    holdings,
+    portfolioValue,
+    totalInvested,
+    totalPnl,
+    walletBalance,
+  } = useApp();
 
-  const totalPnlPct = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+  const totalAccountValue =
+    portfolioValue + walletBalance;
 
-  const enrichedHoldings = useMemo(() => holdings.map((h, i) => {
-    const livePrice = livePrices[h.stockId] ?? h.averageBuyPrice;
-    const currentValue = livePrice * h.quantity;
-    const invested = h.averageBuyPrice * h.quantity;
-    const pnl = currentValue - invested;
-    const pnlPct = (pnl / invested) * 100;
-    const stock = STOCKS.find(s => s.id === h.stockId);
-    return { ...h, livePrice, currentValue, invested, pnl, pnlPct, stock, color: COLORS[i % COLORS.length] };
-  }), [holdings, livePrices]);
+  const totalPnlPercent =
+    totalInvested > 0
+      ? (totalPnl / totalInvested) * 100
+      : 0;
 
-  const pieData = enrichedHoldings.map(h => ({ name: h.symbol, value: h.currentValue, color: h.color })).filter(d => d.value > 0);
+  const enrichedHoldings = useMemo(
+    () =>
+      holdings.map((holding, index) => {
+        const currentPrice =
+          livePrices[holding.stockId] ??
+          holding.averageBuyPrice;
+
+        const currentValue =
+          currentPrice * holding.quantity;
+
+        const investedValue =
+          holding.averageBuyPrice *
+          holding.quantity;
+
+        const pnl =
+          currentValue - investedValue;
+
+        const pnlPercent =
+          investedValue > 0
+            ? (pnl / investedValue) * 100
+            : 0;
+
+        const stock = STOCKS.find(
+          (item) =>
+            item.id === holding.stockId
+        );
+
+        return {
+          ...holding,
+          stock,
+          currentPrice,
+          currentValue,
+          investedValue,
+          pnl,
+          pnlPercent,
+          color:
+            ALLOCATION_COLORS[
+              index %
+                ALLOCATION_COLORS.length
+            ],
+        };
+      }),
+    [holdings, livePrices]
+  );
+
+  const allocationData = useMemo(
+    () =>
+      enrichedHoldings
+        .map((holding) => ({
+          name: holding.symbol,
+          value: holding.currentValue,
+          color: holding.color,
+        }))
+        .filter((item) => item.value > 0),
+    [enrichedHoldings]
+  );
 
   const growthData = useMemo(() => {
-    if (holdings.length === 0) return [];
-    const today = new Date('2026-07-19');
-    return Array.from({ length: 30 }, (_, i) => {
-      const d = new Date(today);
-      d.setDate(d.getDate() - (29 - i));
-      const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const val = holdings.reduce((sum, h) => {
-        const stock = STOCKS.find(s => s.id === h.stockId);
-        if (!stock) return sum;
-        const histIdx = Math.max(0, stock.priceHistory.length - 1 - (29 - i));
-        const price = stock.priceHistory[histIdx]?.price ?? stock.currentPrice;
-        return sum + h.quantity * price;
-      }, 0);
-      return { date: label, value: +val.toFixed(2) };
-    });
-  }, [holdings]);
+    if (holdings.length === 0) {
+      return [];
+    }
+
+    const today = new Date();
+
+    return Array.from(
+      { length: 30 },
+      (_, index) => {
+        const daysAgo = 29 - index;
+        const date = new Date(today);
+
+        date.setDate(
+          date.getDate() - daysAgo
+        );
+
+        const value = holdings.reduce(
+          (sum, holding) => {
+            const stock = STOCKS.find(
+              (item) =>
+                item.id === holding.stockId
+            );
+
+            if (!stock) {
+              return sum;
+            }
+
+            const historyIndex = Math.max(
+              0,
+              stock.priceHistory.length -
+                1 -
+                daysAgo
+            );
+
+            const price =
+              stock.priceHistory[
+                historyIndex
+              ]?.price ??
+              livePrices[
+                holding.stockId
+              ] ??
+              stock.currentPrice;
+
+            return (
+              sum +
+              holding.quantity * price
+            );
+          },
+          0
+        );
+
+        return {
+          date: date.toLocaleDateString(
+            "en-US",
+            {
+              month: "short",
+              day: "numeric",
+            }
+          ),
+          value: Number(
+            value.toFixed(2)
+          ),
+        };
+      }
+    );
+  }, [holdings, livePrices]);
+
+  const bestHolding = useMemo(
+    () =>
+      enrichedHoldings.length > 0
+        ? [...enrichedHoldings].sort(
+            (first, second) =>
+              second.pnlPercent -
+              first.pnlPercent
+          )[0]
+        : null,
+    [enrichedHoldings]
+  );
+
+  const largestHolding = useMemo(
+    () =>
+      enrichedHoldings.length > 0
+        ? [...enrichedHoldings].sort(
+            (first, second) =>
+              second.currentValue -
+              first.currentValue
+          )[0]
+        : null,
+    [enrichedHoldings]
+  );
 
   if (holdings.length === 0) {
     return (
-      <div className="p-6">
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#e7fef6', letterSpacing: '-0.02em', marginBottom: '24px' }}>Portfolio</h1>
-        <div className="flex flex-col items-center justify-center py-24" style={{ background: '#1a1a1a', border: '1px solid #333333', borderRadius: '16px' }}>
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'rgba(246,246,9,0.1)' }}>
-            <Briefcase size={28} style={{ color: '#f6f609' }} />
+      <div className="portfolio-page">
+        <section className="portfolio-page-heading">
+          <div>
+            <span className="portfolio-page-eyebrow">
+              YOUR INVESTMENTS
+            </span>
+
+            <h1>Portfolio</h1>
+
+            <p>
+              Track positions, allocation and
+              portfolio performance.
+            </p>
           </div>
-          <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#e7fef6', marginBottom: '8px' }}>Your portfolio is empty</h2>
-          <p style={{ fontSize: '14px', color: '#808080', marginBottom: '20px', textAlign: 'center', maxWidth: '280px' }}>
-            Start building your portfolio by buying stocks from the markets.
+        </section>
+
+        <section className="portfolio-empty">
+          <div className="portfolio-empty-icon">
+            <Briefcase size={28} />
+          </div>
+
+          <span className="portfolio-empty-label">
+            YOUR PORTFOLIO
+          </span>
+
+          <h2>
+            Start building your portfolio
+          </h2>
+
+          <p>
+            Explore live markets and make your
+            first simulated investment to begin
+            tracking performance.
           </p>
-          <Link to="/stocks">
-            <button className="px-5 py-2.5 rounded-lg" style={{ background: 'linear-gradient(135deg, #f6f609, #c5c507)', color: 'white', fontSize: '14px', fontWeight: 600 }}>
-              Browse Markets
-            </button>
+
+          <Link
+            to="/stocks"
+            className="portfolio-primary-action"
+          >
+            Explore markets
+            <ArrowUpRight size={15} />
           </Link>
-        </div>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="portfolio-page">
+      <section className="portfolio-page-heading">
         <div>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#e7fef6', letterSpacing: '-0.02em' }}>Portfolio</h1>
-          <p style={{ fontSize: '13px', color: '#808080', marginTop: '2px' }}>{holdings.length} positions</p>
+          <span className="portfolio-page-eyebrow">
+            YOUR INVESTMENTS
+          </span>
+
+          <h1>Portfolio</h1>
+
+          <p>
+            Monitor performance, concentration
+            and individual positions.
+          </p>
         </div>
-      </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Portfolio Value', value: fmt(portfolioValue), sub: 'Current market value', color: '#f6f609' },
-          { label: 'Total Invested', value: fmt(totalInvested), sub: 'Cost basis', color: '#999999' },
-          { label: 'P&L', value: `${totalPnl >= 0 ? '+' : ''}${fmt(totalPnl)}`, sub: `${totalPnlPct >= 0 ? '+' : ''}${totalPnlPct.toFixed(2)}% return`, color: totalPnl >= 0 ? '#10b981' : '#f43f5e' },
-          { label: 'Available Cash', value: fmt(walletBalance), sub: 'Ready to invest', color: '#f59e0b' },
-        ].map(s => (
-          <div key={s.label} className="p-4 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-            <div style={{ fontSize: '12px', color: '#808080', marginBottom: '8px' }}>{s.label}</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, color: s.color, letterSpacing: '-0.02em' }}>{s.value}</div>
-            <div style={{ fontSize: '11px', color: '#4d4d4d', marginTop: '2px' }}>{s.sub}</div>
+        <Link
+          to="/portfolio-analyzer"
+          className="portfolio-ai-button"
+        >
+          <Sparkles size={15} />
+          Analyze with AI
+        </Link>
+      </section>
+
+      <section className="portfolio-overview">
+        <div className="portfolio-overview-primary">
+          <span className="portfolio-overview-label">
+            Total account value
+          </span>
+
+          <strong className="portfolio-overview-value sf-number">
+            {formatCurrency(
+              totalAccountValue
+            )}
+          </strong>
+
+          <div className="portfolio-overview-return">
+            <span
+              className={
+                totalPnl >= 0
+                  ? "positive"
+                  : "negative"
+              }
+            >
+              {totalPnl >= 0 ? (
+                <TrendingUp size={14} />
+              ) : (
+                <TrendingDown size={14} />
+              )}
+
+              {totalPnlPercent >= 0
+                ? "+"
+                : ""}
+              {totalPnlPercent.toFixed(2)}%
+            </span>
+
+            <small>
+              {totalPnl >= 0 ? "+" : ""}
+              {formatCurrency(totalPnl)} total
+              return
+            </small>
           </div>
-        ))}
-      </div>
 
-      {/* Charts */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6', marginBottom: '16px' }}>Portfolio Value — 30 Days</h3>
-          <svg width={0} height={0} style={{ position: 'absolute' }}>
-            <defs>
-              <linearGradient id="portfolioGrowthGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f6f609" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#f6f609" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-          </svg>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={growthData} margin={{ top: 5, right: 0, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
-              <XAxis dataKey="date" tick={{ fill: '#4d4d4d', fontSize: 10 }} axisLine={false} tickLine={false} interval={6} />
-              <YAxis tick={{ fill: '#4d4d4d', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333333', borderRadius: '8px', color: '#e7fef6', fontSize: '12px' }} formatter={(v: number) => [`$${v.toLocaleString()}`, 'Value']} />
-              <Area isAnimationActive={false} type="monotone" dataKey="value" stroke="#f6f609" strokeWidth={2} fill="url(#portfolioGrowthGrad)" dot={false} />
+          <div className="portfolio-overview-actions">
+            <Link to="/stocks">
+              Add investment
+              <ArrowUpRight size={14} />
+            </Link>
+
+            <Link to="/transactions">
+              View transactions
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </div>
+
+        <div className="portfolio-overview-chart">
+          <div className="portfolio-chart-heading">
+            <div>
+              <span>PERFORMANCE</span>
+              <h2>Portfolio value</h2>
+            </div>
+
+            <span>Last 30 days</span>
+          </div>
+
+          <ResponsiveContainer
+            width="100%"
+            height={230}
+          >
+            <AreaChart
+              data={growthData}
+              margin={{
+                top: 10,
+                right: 6,
+                bottom: 0,
+                left: 0,
+              }}
+            >
+              <defs>
+                <linearGradient
+                  id="portfolioPurpleGradient"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="#a855f7"
+                    stopOpacity={0.4}
+                  />
+
+                  <stop
+                    offset="100%"
+                    stopColor="#a855f7"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
+
+              <CartesianGrid
+                stroke="rgba(255,255,255,.045)"
+                vertical={false}
+              />
+
+              <XAxis
+                dataKey="date"
+                tick={{
+                  fill: "#665f70",
+                  fontSize: 9,
+                }}
+                axisLine={false}
+                tickLine={false}
+                interval={6}
+              />
+
+              <YAxis
+                tick={{
+                  fill: "#665f70",
+                  fontSize: 9,
+                }}
+                axisLine={false}
+                tickLine={false}
+                width={46}
+                tickFormatter={(value) =>
+                  `$${(
+                    Number(value) / 1000
+                  ).toFixed(0)}K`
+                }
+              />
+
+              <Tooltip
+                cursor={{
+                  stroke:
+                    "rgba(192,132,252,.25)",
+                }}
+                contentStyle={{
+                  background: "#110d19",
+                  border:
+                    "1px solid rgba(255,255,255,.09)",
+                  borderRadius: "12px",
+                  color: "#f7f6fb",
+                  fontSize: "10px",
+                  boxShadow:
+                    "0 18px 50px rgba(0,0,0,.38)",
+                }}
+                formatter={(value: number) => [
+                  formatCurrency(value),
+                  "Portfolio",
+                ]}
+              />
+
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#b66bff"
+                strokeWidth={2.5}
+                fill="url(#portfolioPurpleGradient)"
+                dot={false}
+                isAnimationActive={false}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>
+      </section>
 
-        <div className="p-5 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6', marginBottom: '4px' }}>Allocation</h3>
-          <p style={{ fontSize: '12px', color: '#808080', marginBottom: '8px' }}>By current value</p>
-          <ResponsiveContainer width="100%" height={140}>
-            <PieChart>
-              <Pie isAnimationActive={false} data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value">
-                {pieData.map((entry, i) => <Cell key={`pie-cell-${i}-${entry.name}`} fill={entry.color} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333333', borderRadius: '8px', fontSize: '12px', color: '#e7fef6' }} formatter={(v: number) => [`$${v.toLocaleString()}`, '']} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-1.5 mt-1">
-            {pieData.slice(0, 5).map(d => (
-              <div key={d.name} className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
-                <span style={{ fontSize: '12px', color: '#b3b3b3' }}>{d.name}</span>
-                <span className="ml-auto" style={{ fontSize: '11px', color: '#999999' }}>
-                  {portfolioValue > 0 ? ((d.value / portfolioValue) * 100).toFixed(1) : 0}%
-                </span>
-              </div>
-            ))}
+      <section className="portfolio-stat-grid">
+        <article>
+          <span>
+            <Briefcase size={15} />
+            Invested value
+          </span>
+
+          <strong className="sf-number">
+            {formatCurrency(totalInvested)}
+          </strong>
+
+          <small>
+            Original cost basis
+          </small>
+        </article>
+
+        <article>
+          <span>
+            <Wallet size={15} />
+            Available cash
+          </span>
+
+          <strong className="sf-number">
+            {formatCurrency(walletBalance)}
+          </strong>
+
+          <small>
+            Ready to invest
+          </small>
+        </article>
+
+        <article>
+          <span>
+            <TrendingUp size={15} />
+            Best performer
+          </span>
+
+          <strong>
+            {bestHolding?.symbol ?? "—"}
+          </strong>
+
+          <small
+            className={
+              (bestHolding?.pnlPercent ??
+                0) >= 0
+                ? "positive"
+                : "negative"
+            }
+          >
+            {bestHolding
+              ? `${
+                  bestHolding.pnlPercent >= 0
+                    ? "+"
+                    : ""
+                }${bestHolding.pnlPercent.toFixed(
+                  2
+                )}%`
+              : "No data"}
+          </small>
+        </article>
+
+        <article>
+          <span>
+            <Briefcase size={15} />
+            Largest position
+          </span>
+
+          <strong>
+            {largestHolding?.symbol ?? "—"}
+          </strong>
+
+          <small>
+            {largestHolding &&
+            portfolioValue > 0
+              ? `${(
+                  (largestHolding.currentValue /
+                    portfolioValue) *
+                  100
+                ).toFixed(1)}% of portfolio`
+              : "No data"}
+          </small>
+        </article>
+      </section>
+
+      <section className="portfolio-content-grid">
+        <article className="portfolio-panel">
+          <div className="portfolio-panel-heading">
+            <div>
+              <span>ALLOCATION</span>
+              <h2>Portfolio composition</h2>
+            </div>
+
+            <small>
+              By current market value
+            </small>
           </div>
-        </div>
-      </div>
 
-      {/* Holdings table */}
-      <div className="rounded-xl overflow-hidden" style={{ background: '#1a1a1a', border: '1px solid #333333' }}>
-        <div className="px-5 py-3.5 border-b" style={{ borderColor: '#333333' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#e7fef6' }}>Holdings</h3>
+          <div className="portfolio-allocation-layout">
+            <div className="portfolio-allocation-chart">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+              >
+                <PieChart>
+                  <Pie
+                    data={allocationData}
+                    dataKey="value"
+                    innerRadius={68}
+                    outerRadius={94}
+                    paddingAngle={3}
+                    stroke="none"
+                    isAnimationActive={false}
+                  >
+                    {allocationData.map(
+                      (entry) => (
+                        <Cell
+                          key={entry.name}
+                          fill={entry.color}
+                        />
+                      )
+                    )}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+
+              <div className="portfolio-allocation-center">
+                <strong className="sf-number">
+                  {holdings.length}
+                </strong>
+                <span>positions</span>
+              </div>
+            </div>
+
+            <div className="portfolio-allocation-list">
+              {allocationData.map(
+                (item) => (
+                  <div key={item.name}>
+                    <span
+                      className="portfolio-allocation-dot"
+                      style={{
+                        background:
+                          item.color,
+                      }}
+                    />
+
+                    <span>{item.name}</span>
+
+                    <strong className="sf-number">
+                      {portfolioValue > 0
+                        ? (
+                            (item.value /
+                              portfolioValue) *
+                            100
+                          ).toFixed(1)
+                        : "0.0"}
+                      %
+                    </strong>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        </article>
+
+        <article className="portfolio-panel portfolio-insight-panel">
+          <div className="portfolio-panel-heading">
+            <div>
+              <span>PORTFOLIO INSIGHT</span>
+              <h2>Current structure</h2>
+            </div>
+          </div>
+
+          <div className="portfolio-insight-list">
+            <div>
+              <span>
+                Equity allocation
+              </span>
+
+              <strong className="sf-number">
+                {totalAccountValue > 0
+                  ? (
+                      (portfolioValue /
+                        totalAccountValue) *
+                      100
+                    ).toFixed(1)
+                  : "0.0"}
+                %
+              </strong>
+            </div>
+
+            <div>
+              <span>Cash allocation</span>
+
+              <strong className="sf-number">
+                {totalAccountValue > 0
+                  ? (
+                      (walletBalance /
+                        totalAccountValue) *
+                      100
+                    ).toFixed(1)
+                  : "0.0"}
+                %
+              </strong>
+            </div>
+
+            <div>
+              <span>Number of holdings</span>
+
+              <strong className="sf-number">
+                {holdings.length}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Largest concentration
+              </span>
+
+              <strong className="sf-number">
+                {largestHolding &&
+                portfolioValue > 0
+                  ? `${(
+                      (largestHolding.currentValue /
+                        portfolioValue) *
+                      100
+                    ).toFixed(1)}%`
+                  : "0.0%"}
+              </strong>
+            </div>
+          </div>
+
+          <Link
+            to="/portfolio-analyzer"
+            className="portfolio-insight-action"
+          >
+            <Sparkles size={14} />
+            Generate complete AI analysis
+          </Link>
+        </article>
+      </section>
+
+      <section className="portfolio-holdings-panel">
+        <div className="portfolio-holdings-heading">
+          <div>
+            <span>YOUR POSITIONS</span>
+            <h2>Holdings</h2>
+          </div>
+
+          <strong>
+            {holdings.length}{" "}
+            {holdings.length === 1
+              ? "position"
+              : "positions"}
+          </strong>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+
+        <div className="portfolio-table-scroll">
+          <table className="portfolio-table">
             <thead>
-              <tr style={{ borderBottom: '1px solid #333333' }}>
-                {['Stock', 'Quantity', 'Avg. Price', 'Current Price', 'Invested', 'Current Value', 'P&L', 'Return'].map(h => (
-                  <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: '#808080', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
+              <tr>
+                <th>Stock</th>
+                <th>Quantity</th>
+                <th>Average price</th>
+                <th>Current price</th>
+                <th>Invested</th>
+                <th>Current value</th>
+                <th>P&amp;L</th>
+                <th>Return</th>
               </tr>
             </thead>
+
             <tbody>
-              {enrichedHoldings.map(h => (
-                <tr key={h.stockId} style={{ borderBottom: '1px solid #0d0d0d' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-                  <td style={{ padding: '12px 16px' }}>
-                    <Link to={`/stocks/${h.stockId}`} className="flex items-center gap-3" style={{ textDecoration: 'none' }}>
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${h.color}20`, border: `1px solid ${h.color}30` }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: h.color }}>{h.symbol.slice(0, 2)}</span>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>{h.symbol}</div>
-                        <div style={{ fontSize: '11px', color: '#808080' }} className="truncate max-w-[120px]">{h.companyName}</div>
-                      </div>
-                    </Link>
-                  </td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>{h.quantity}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', color: '#b3b3b3' }}>${h.averageBuyPrice.toFixed(2)}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>${h.livePrice.toFixed(2)}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', color: '#b3b3b3' }}>{fmt(h.invested)}</td>
-                  <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>{fmt(h.currentValue)}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <div className="flex items-center gap-1">
-                      {h.pnl >= 0 ? <TrendingUp size={12} style={{ color: '#10b981' }} /> : <TrendingDown size={12} style={{ color: '#f43f5e' }} />}
-                      <span style={{ fontSize: '13px', fontWeight: 600, color: h.pnl >= 0 ? '#10b981' : '#f43f5e' }}>
-                        {h.pnl >= 0 ? '+' : ''}{fmt(h.pnl)}
+              {enrichedHoldings.map(
+                (holding) => (
+                  <tr key={holding.stockId}>
+                    <td>
+                      <Link
+                        to={`/stocks/${holding.stockId}`}
+                        className="portfolio-stock-link"
+                      >
+                        <span className="portfolio-stock-logo">
+                          {holding.symbol.slice(
+                            0,
+                            2
+                          )}
+                        </span>
+
+                        <span className="portfolio-stock-copy">
+                          <strong>
+                            {holding.symbol}
+                          </strong>
+
+                          <small>
+                            {
+                              holding.companyName
+                            }
+                          </small>
+                        </span>
+                      </Link>
+                    </td>
+
+                    <td>
+                      <span className="portfolio-table-value sf-number">
+                        {holding.quantity}
                       </span>
-                    </div>
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span className="px-2 py-0.5 rounded-md" style={{ fontSize: '12px', fontWeight: 600, background: h.pnlPct >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)', color: h.pnlPct >= 0 ? '#10b981' : '#f43f5e' }}>
-                      {h.pnlPct >= 0 ? '+' : ''}{h.pnlPct.toFixed(2)}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+
+                    <td>
+                      <span className="portfolio-table-muted sf-number">
+                        $
+                        {holding.averageBuyPrice.toFixed(
+                          2
+                        )}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className="portfolio-table-value sf-number">
+                        $
+                        {holding.currentPrice.toFixed(
+                          2
+                        )}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className="portfolio-table-muted sf-number">
+                        {formatCurrency(
+                          holding.investedValue
+                        )}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className="portfolio-table-value sf-number">
+                        {formatCurrency(
+                          holding.currentValue
+                        )}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span
+                        className={`portfolio-pnl ${
+                          holding.pnl >= 0
+                            ? "positive"
+                            : "negative"
+                        }`}
+                      >
+                        {holding.pnl >= 0 ? (
+                          <TrendingUp
+                            size={13}
+                          />
+                        ) : (
+                          <TrendingDown
+                            size={13}
+                          />
+                        )}
+
+                        <span className="sf-number">
+                          {holding.pnl >= 0
+                            ? "+"
+                            : ""}
+                          {formatCurrency(
+                            holding.pnl
+                          )}
+                        </span>
+                      </span>
+                    </td>
+
+                    <td>
+                      <span
+                        className={`portfolio-return-pill ${
+                          holding.pnlPercent >= 0
+                            ? "portfolio-return-positive"
+                            : "portfolio-return-negative"
+                        }`}
+                      >
+                        {holding.pnlPercent >=
+                        0
+                          ? "+"
+                          : ""}
+                        {holding.pnlPercent.toFixed(
+                          2
+                        )}
+                        %
+                      </span>
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

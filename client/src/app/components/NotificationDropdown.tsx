@@ -1,15 +1,22 @@
-import { useRef } from "react";
-import { useNavigate } from "react-router";
+import {
+  useRef,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
+
 import {
   Bell,
+  Bookmark,
   CheckCheck,
+  Info,
+  Shield,
   Trash2,
   TrendingUp,
   Wallet,
-  Bookmark,
-  Shield,
-  Info,
+  X,
 } from "lucide-react";
+
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import {
@@ -26,7 +33,9 @@ interface NotificationDropdownProps {
   onClose: () => void;
 }
 
-function formatTime(dateString: string) {
+function formatTime(
+  dateString: string
+): string {
   const date = new Date(dateString);
   const difference =
     Date.now() - date.getTime();
@@ -35,7 +44,10 @@ function formatTime(dateString: string) {
     difference / 60_000
   );
 
-  if (minutes < 1) return "Just now";
+  if (minutes < 1) {
+    return "Just now";
+  }
+
   if (minutes < 60) {
     return `${minutes}m ago`;
   }
@@ -65,14 +77,12 @@ function formatTime(dateString: string) {
   );
 }
 
-function notificationIcon(
+function getNotificationIcon(
   type: NotificationType
 ) {
   switch (type) {
     case "TRADE":
-      return (
-        <TrendingUp size={15} />
-      );
+      return <TrendingUp size={15} />;
 
     case "WALLET":
       return <Wallet size={15} />;
@@ -88,44 +98,24 @@ function notificationIcon(
   }
 }
 
-function notificationStyle(
+function getNotificationTone(
   type: NotificationType
-) {
+): string {
   switch (type) {
     case "TRADE":
-      return {
-        color: "#10b981",
-        background:
-          "rgba(16,185,129,0.1)",
-      };
+      return "trade";
 
     case "WALLET":
-      return {
-        color: "#f59e0b",
-        background:
-          "rgba(245,158,11,0.1)",
-      };
+      return "wallet";
 
     case "WATCHLIST":
-      return {
-        color: "#f6f609",
-        background:
-          "rgba(246,246,9,0.1)",
-      };
+      return "watchlist";
 
     case "ACCOUNT":
-      return {
-        color: "#06b6d4",
-        background:
-          "rgba(6,182,212,0.1)",
-      };
+      return "account";
 
     default:
-      return {
-        color: "#999999",
-        background:
-          "rgba(153,153,153,0.1)",
-      };
+      return "info";
   }
 }
 
@@ -134,6 +124,7 @@ export default function NotificationDropdown({
   onClose,
 }: NotificationDropdownProps) {
   const navigate = useNavigate();
+
   const dropdownRef =
     useRef<HTMLDivElement>(null);
 
@@ -146,35 +137,52 @@ export default function NotificationDropdown({
     deleteNotification,
   } = useNotifications();
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
-  const handleNotificationClick =
-    async (
-      notification: Notification
-    ) => {
-      try {
-        if (!notification.read) {
-          await markAsRead(
-            notification._id
-          );
-        }
-
-        onClose();
-
-        if (notification.link) {
-          navigate(notification.link);
-        }
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Unable to open notification"
+  const handleNotificationOpen = async (
+    notification: Notification
+  ) => {
+    try {
+      if (!notification.read) {
+        await markAsRead(
+          notification._id
         );
       }
-    };
+
+      onClose();
+
+      if (notification.link) {
+        navigate(notification.link);
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to open notification"
+      );
+    }
+  };
+
+  const handleKeyboardOpen = (
+    event: KeyboardEvent<HTMLDivElement>,
+    notification: Notification
+  ) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+
+      void handleNotificationOpen(
+        notification
+      );
+    }
+  };
 
   const handleDelete = async (
-    event: React.MouseEvent,
+    event: MouseEvent<HTMLButtonElement>,
     notificationId: string
   ) => {
     event.stopPropagation();
@@ -182,6 +190,10 @@ export default function NotificationDropdown({
     try {
       await deleteNotification(
         notificationId
+      );
+
+      toast.success(
+        "Notification removed"
       );
     } catch (error) {
       toast.error(
@@ -192,286 +204,205 @@ export default function NotificationDropdown({
     }
   };
 
-  const handleMarkAllRead =
-    async () => {
-      try {
-        await markAllAsRead();
-        toast.success(
-          "All notifications marked as read"
-        );
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Unable to update notifications"
-        );
-      }
-    };
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead();
+
+      toast.success(
+        "All notifications marked as read"
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to update notifications"
+      );
+    }
+  };
+
+  const visibleNotifications =
+    notifications.slice(0, 12);
 
   return (
     <>
       <button
         type="button"
+        className="notification-backdrop"
         aria-label="Close notifications"
-        className="fixed inset-0 z-40 cursor-default"
-        style={{
-          background: "transparent",
-        }}
         onClick={onClose}
       />
 
       <div
         ref={dropdownRef}
-        className="absolute right-0 top-11 z-50 w-[380px] max-w-[calc(100vw-24px)] rounded-xl overflow-hidden shadow-2xl"
-        style={{
-          background: "#171717",
-          border: "1px solid #333333",
-        }}
+        className="notification-dropdown"
+        role="dialog"
+        aria-label="Notifications"
       >
-        <div
-          className="flex items-center justify-between px-4 py-3.5"
-          style={{
-            borderBottom:
-              "1px solid #333333",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: 650,
-                color: "#e7fef6",
-              }}
-            >
-              Notifications
-            </div>
+        <header className="notification-header">
+          <div className="notification-heading">
+            <span className="notification-heading-icon">
+              <Bell size={16} />
+            </span>
 
-            <div
-              style={{
-                marginTop: "1px",
-                fontSize: "11px",
-                color: "#808080",
-              }}
-            >
-              {unreadCount === 0
-                ? "You're all caught up"
-                : `${unreadCount} unread`}
+            <div>
+              <span>
+                ACTIVITY CENTER
+              </span>
+
+              <h2>Notifications</h2>
+
+              <p>
+                {unreadCount === 0
+                  ? "You are all caught up"
+                  : `${unreadCount} unread ${
+                      unreadCount === 1
+                        ? "notification"
+                        : "notifications"
+                    }`}
+              </p>
             </div>
           </div>
 
-          {unreadCount > 0 && (
+          <button
+            type="button"
+            className="notification-close"
+            onClick={onClose}
+            aria-label="Close notifications"
+          >
+            <X size={16} />
+          </button>
+        </header>
+
+        {unreadCount > 0 && (
+          <div className="notification-toolbar">
+            <span>
+              Recent account activity
+            </span>
+
             <button
               type="button"
-              onClick={
-                handleMarkAllRead
+              onClick={() =>
+                void handleMarkAllRead()
               }
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg"
-              style={{
-                background:
-                  "rgba(246,246,9,0.08)",
-                color: "#f6f609",
-                fontSize: "11px",
-                border:
-                  "1px solid rgba(246,246,9,0.15)",
-              }}
             >
               <CheckCheck size={13} />
               Mark all read
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
-        <div className="max-h-[430px] overflow-y-auto">
+        <div className="notification-list">
           {notificationsLoading &&
           notifications.length === 0 ? (
-            <div className="py-14 flex justify-center">
-              <div
-                className="w-6 h-6 rounded-full border-2 animate-spin"
-                style={{
-                  borderColor:
-                    "rgba(246,246,9,0.15)",
-                  borderTopColor:
-                    "#f6f609",
-                }}
-              />
+            <div className="notification-loading">
+              <span />
+              <p>
+                Loading notifications
+              </p>
             </div>
           ) : notifications.length === 0 ? (
-            <div className="py-14 px-5 flex flex-col items-center text-center">
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
-                style={{
-                  background: "#222222",
-                  border:
-                    "1px solid #333333",
-                }}
-              >
-                <Bell
-                  size={19}
-                  style={{
-                    color: "#4d4d4d",
-                  }}
-                />
-              </div>
+            <div className="notification-empty">
+              <span>
+                <Bell size={21} />
+              </span>
 
-              <div
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#b3b3b3",
-                }}
-              >
+              <h3>
                 No notifications yet
-              </div>
+              </h3>
 
-              <div
-                style={{
-                  marginTop: "4px",
-                  fontSize: "11px",
-                  color: "#5f5f5f",
-                }}
-              >
-                Trading and account activity
-                will appear here.
-              </div>
+              <p>
+                Trading, wallet, watchlist and
+                account activity will appear
+                here.
+              </p>
             </div>
           ) : (
-            notifications
-              .slice(0, 12)
-              .map(notification => {
-                const style =
-                  notificationStyle(
+            visibleNotifications.map(
+              (notification) => {
+                const tone =
+                  getNotificationTone(
                     notification.type
                   );
 
                 return (
-                  <button
-                    type="button"
+                  <div
                     key={notification._id}
+                    className={`notification-item ${
+                      notification.read
+                        ? "notification-item-read"
+                        : "notification-item-unread"
+                    }`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() =>
-                      handleNotificationClick(
+                      void handleNotificationOpen(
                         notification
                       )
                     }
-                    className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors"
-                    style={{
-                      background:
-                        notification.read
-                          ? "transparent"
-                          : "rgba(246,246,9,0.025)",
-
-                      borderBottom:
-                        "1px solid #252525",
-                    }}
-                    onMouseEnter={event => {
-                      event.currentTarget.style.background =
-                        "rgba(255,255,255,0.035)";
-                    }}
-                    onMouseLeave={event => {
-                      event.currentTarget.style.background =
-                        notification.read
-                          ? "transparent"
-                          : "rgba(246,246,9,0.025)";
-                    }}
+                    onKeyDown={(event) =>
+                      handleKeyboardOpen(
+                        event,
+                        notification
+                      )
+                    }
                   >
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{
-                        background:
-                          style.background,
-                        color: style.color,
-                      }}
+                    <span
+                      className={`notification-type-icon notification-type-${tone}`}
                     >
-                      {notificationIcon(
+                      {getNotificationIcon(
                         notification.type
                       )}
-                    </div>
+                    </span>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                    <div className="notification-content">
+                      <div className="notification-title-row">
                         {!notification.read && (
-                          <span
-                            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                            style={{
-                              background:
-                                "#f6f609",
-                            }}
-                          />
+                          <i />
                         )}
 
-                        <div
-                          className="truncate"
-                          style={{
-                            fontSize: "12px",
-                            fontWeight:
-                              notification.read
-                                ? 500
-                                : 650,
-
-                            color:
-                              "#e7fef6",
-                          }}
-                        >
-                          {
-                            notification.title
-                          }
-                        </div>
+                        <strong>
+                          {notification.title}
+                        </strong>
                       </div>
 
-                      <div
-                        className="mt-1 line-clamp-2"
-                        style={{
-                          fontSize: "11px",
-                          lineHeight: 1.5,
-                          color: "#808080",
-                        }}
-                      >
-                        {
-                          notification.message
-                        }
-                      </div>
+                      <p>
+                        {notification.message}
+                      </p>
 
-                      <div
-                        style={{
-                          marginTop: "5px",
-                          fontSize: "10px",
-                          color: "#4d4d4d",
-                        }}
-                      >
+                      <small>
                         {formatTime(
                           notification.createdAt
                         )}
-                      </div>
+                      </small>
                     </div>
 
                     <button
                       type="button"
-                      onClick={event =>
-                        handleDelete(
+                      className="notification-delete"
+                      onClick={(event) =>
+                        void handleDelete(
                           event,
                           notification._id
                         )
                       }
-                      className="p-1.5 rounded-md flex-shrink-0"
-                      style={{
-                        color: "#4d4d4d",
-                      }}
+                      aria-label={`Delete ${notification.title}`}
                       title="Delete notification"
-                      onMouseEnter={event => {
-                        event.currentTarget.style.color =
-                          "#f43f5e";
-                      }}
-                      onMouseLeave={event => {
-                        event.currentTarget.style.color =
-                          "#4d4d4d";
-                      }}
                     >
                       <Trash2 size={13} />
                     </button>
-                  </button>
+                  </div>
                 );
-              })
+              }
+            )
           )}
         </div>
+
+        {notifications.length > 12 && (
+          <footer className="notification-footer">
+            Showing the 12 most recent
+            notifications
+          </footer>
+        )}
       </div>
     </>
   );
