@@ -1,10 +1,11 @@
 <div align="center">
 
-# 📈 Stockify
+# Stockify
 
 ### AI-Powered Stock Portfolio & Market Analysis Platform
 
 Real-time stock tracking, intelligent portfolio insights, AI-powered investment assistant, watchlists, live market data, and portfolio analytics — all in one modern platform.
+
 
 ---
 
@@ -17,6 +18,9 @@ Real-time stock tracking, intelligent portfolio insights, AI-powered investment 
 ![Gemini AI](https://img.shields.io/badge/Gemini-AI-8E75FF?style=for-the-badge&logo=google)
 
 </div>
+
+<img width="1917" height="832" alt="Screenshot 2026-08-06 003730" src="https://github.com/user-attachments/assets/3e302214-8049-4406-b512-a6cb8d6a739c" />
+
 
 ---
 
@@ -260,7 +264,18 @@ FINNHUB_API_KEY=
 
 # 📸 Screenshots
 
-Coming Soon
+<div align="center">
+
+<img width="48%" height="20%" alt="Screenshot 2026-08-06 003914" src="https://github.com/user-attachments/assets/56cbf3c3-6457-413d-bc67-d1d9e95c6f9f" />
+<img width="48%" height="20%" alt="Screenshot 2026-08-06 003941" src="https://github.com/user-attachments/assets/d9307ae2-ddaf-4e81-8fe9-a8e97b28f48e" />
+<img width="48%" height="20%" alt="image" src="https://github.com/user-attachments/assets/8dbfa2f7-9ff3-4145-9046-110d8b1abc18" />
+<img width="48%" height="20%" alt="Screenshot 2026-08-06 004012" src="https://github.com/user-attachments/assets/d41d2e9d-9540-4d8e-b7bc-3fec33a00cdc" />
+<img width="48%" height="20%" alt="Screenshot 2026-08-06 004116" src="https://github.com/user-attachments/assets/84211ab5-4c95-4eaf-aacc-537abb902542" />
+<img width="48%" height="20%" alt="Screenshot 2026-08-06 004150" src="https://github.com/user-attachments/assets/9aa6edfe-c8a4-4674-ba13-155698e0bbcd" />
+
+
+</div>
+
 
 ---
 
