@@ -3,14 +3,14 @@
 ========================================================= */
 
 :root {
-  --font-xs: 30px;
-  --font-sm: 32px;
-  --font-base: 36px;
-  --font-md: 39px;
-  --font-lg: 42px;
-  --font-xl: 50px;
-  --font-2xl: 58px;
-  --font-3xl: 74px;
+    --font-xs: 12px;
+  --font-sm: 13px;
+  --font-base: 14px;
+  --font-md: 15px;
+  --font-lg: 16px;
+  --font-xl: 20px;
+  --font-2xl: 24px;
+  --font-3xl: 32px;
 }
 
 html {

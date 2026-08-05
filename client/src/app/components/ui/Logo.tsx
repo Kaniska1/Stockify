@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import stockifyLogo from "../../../assets/stockify-logo.png";
+import stockifyLogo from "../../../assets/stockify-logo.svg";
 
 interface LogoProps {
   to?: string;

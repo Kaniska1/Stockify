@@ -1,166 +1,433 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
-import { Search, TrendingUp, LayoutDashboard, Briefcase, History, BarChart3, User, X } from 'lucide-react';
-import { STOCKS } from '../data/stocks';
-import { useApp } from '../context/AppContext';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-interface Props {
+import {
+  ArrowRight,
+  BarChart3,
+  Briefcase,
+  History,
+  LayoutDashboard,
+  Search,
+  TrendingDown,
+  TrendingUp,
+  User,
+  X,
+} from "lucide-react";
+
+import { useNavigate } from "react-router";
+
+import { useApp } from "../context/AppContext";
+import { STOCKS } from "../data/stocks";
+
+interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
 }
 
 const PAGES = [
-  { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={15} /> },
-  { label: 'Markets', path: '/stocks', icon: <TrendingUp size={15} /> },
-  { label: 'Portfolio', path: '/portfolio', icon: <Briefcase size={15} /> },
-  { label: 'Transactions', path: '/transactions', icon: <History size={15} /> },
-  { label: 'Market Analysis', path: '/market', icon: <BarChart3 size={15} /> },
-  { label: 'Profile', path: '/profile', icon: <User size={15} /> },
+  {
+    label: "Dashboard",
+    path: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Markets",
+    path: "/stocks",
+    icon: TrendingUp,
+  },
+  {
+    label: "Portfolio",
+    path: "/portfolio",
+    icon: Briefcase,
+  },
+  {
+    label: "Transactions",
+    path: "/transactions",
+    icon: History,
+  },
+  {
+    label: "Market Analysis",
+    path: "/market",
+    icon: BarChart3,
+  },
+  {
+    label: "Profile",
+    path: "/profile",
+    icon: User,
+  },
 ];
 
-export default function CommandPalette({ open, onClose }: Props) {
-  const [query, setQuery] = useState('');
+export default function CommandPalette({
+  open,
+  onClose,
+}: CommandPaletteProps) {
+  const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
+
   const navigate = useNavigate();
-  const { livePrices, liveChanges } = useApp();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const { livePrices, liveChanges } = useApp();
+
+  const normalizedQuery = query
+    .trim()
+    .toLowerCase();
+
+  const stockResults = useMemo(() => {
+    const stocks = normalizedQuery
+      ? STOCKS.filter(
+          (stock) =>
+            stock.symbol
+              .toLowerCase()
+              .includes(normalizedQuery) ||
+            stock.companyName
+              .toLowerCase()
+              .includes(normalizedQuery)
+        )
+      : STOCKS;
+
+    return stocks.slice(0, 6);
+  }, [normalizedQuery]);
+
+  const pageResults = useMemo(
+    () =>
+      PAGES.filter(
+        (page) =>
+          !normalizedQuery ||
+          page.label
+            .toLowerCase()
+            .includes(normalizedQuery)
+      ),
+    [normalizedQuery]
+  );
+
+  const allResults = useMemo(
+    () => [
+      ...stockResults.map((stock) => ({
+        path: `/stocks/${stock.id}`,
+      })),
+      ...pageResults.map((page) => ({
+        path: page.path,
+      })),
+    ],
+    [stockResults, pageResults]
+  );
+
   useEffect(() => {
-    if (open) {
-      setQuery('');
-      setSelected(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+    if (!open) {
+      return;
     }
+
+    setQuery("");
+    setSelected(0);
+
+    window.setTimeout(() => {
+      inputRef.current?.focus();
+    }, 60);
   }, [open]);
-
-  const q = query.toLowerCase().trim();
-  const stockResults = q
-    ? STOCKS.filter(s => s.symbol.toLowerCase().includes(q) || s.companyName.toLowerCase().includes(q)).slice(0, 5)
-    : STOCKS.slice(0, 5);
-  const pageResults = PAGES.filter(p => !q || p.label.toLowerCase().includes(q));
-
-  const allResults = [
-    ...stockResults.map(s => ({ type: 'stock' as const, key: s.id, label: s.companyName, sub: s.symbol, path: `/stocks/${s.id}`, icon: null, stock: s })),
-    ...pageResults.map(p => ({ type: 'page' as const, key: p.path, label: p.label, sub: 'Navigate', path: p.path, icon: p.icon, stock: null })),
-  ];
 
   useEffect(() => {
     setSelected(0);
   }, [query]);
 
   useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowDown') { e.preventDefault(); setSelected(p => Math.min(p + 1, allResults.length - 1)); }
-      if (e.key === 'ArrowUp') { e.preventDefault(); setSelected(p => Math.max(p - 1, 0)); }
-      if (e.key === 'Enter') {
-        const item = allResults[selected];
-        if (item) { navigate(item.path); onClose(); }
+    if (!open) {
+      return;
+    }
+
+    const handleKeyboard = (
+      event: KeyboardEvent
+    ) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+
+        setSelected((current) =>
+          Math.min(
+            current + 1,
+            allResults.length - 1
+          )
+        );
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+
+        setSelected((current) =>
+          Math.max(current - 1, 0)
+        );
+      }
+
+      if (event.key === "Enter") {
+        const selectedResult =
+          allResults[selected];
+
+        if (selectedResult) {
+          navigate(selectedResult.path);
+          onClose();
+        }
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [open, allResults, selected, navigate, onClose]);
 
-  if (!open) return null;
+    window.addEventListener(
+      "keydown",
+      handleKeyboard
+    );
+
+    return () =>
+      window.removeEventListener(
+        "keydown",
+        handleKeyboard
+      );
+  }, [
+    open,
+    selected,
+    allResults,
+    navigate,
+    onClose,
+  ]);
+
+  if (!open) {
+    return null;
+  }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-24" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }} onClick={onClose}>
-      <div
-        className="w-full max-w-lg rounded-2xl overflow-hidden"
-        style={{ background: '#1a1a1a', border: '1px solid #333333', boxShadow: '0 25px 60px rgba(0,0,0,0.8)' }}
-        onClick={e => e.stopPropagation()}
+    <div
+      className="command-palette-overlay"
+      onMouseDown={onClose}
+    >
+      <section
+        className="command-palette"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search Stockify"
+        onMouseDown={(event) =>
+          event.stopPropagation()
+        }
       >
-        {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b" style={{ borderColor: '#333333' }}>
-          <Search size={16} style={{ color: '#808080', flexShrink: 0 }} />
+        <header className="command-palette-header">
+          <Search size={18} />
+
           <input
             ref={inputRef}
             value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search stocks, pages..."
-            className="flex-1 bg-transparent outline-none placeholder-slate-600"
-            style={{ fontSize: '15px', color: '#e7fef6' }}
+            onChange={(event) =>
+              setQuery(event.target.value)
+            }
+            placeholder="Search stocks, pages and tools..."
           />
-          <button onClick={onClose} style={{ color: '#808080' }}>
-            <X size={15} />
-          </button>
-        </div>
 
-        {/* Results */}
-        <div className="py-2 max-h-80 overflow-y-auto">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close search"
+          >
+            <X size={16} />
+          </button>
+        </header>
+
+        <div className="command-palette-results">
           {allResults.length === 0 && (
-            <div className="px-4 py-8 text-center" style={{ color: '#808080', fontSize: '14px' }}>No results found</div>
+            <div className="command-palette-empty">
+              <Search size={22} />
+
+              <strong>
+                No results found
+              </strong>
+
+              <span>
+                Try a ticker symbol, company
+                name or page.
+              </span>
+            </div>
           )}
 
           {stockResults.length > 0 && (
-            <>
-              <div className="px-4 py-1.5" style={{ fontSize: '11px', color: '#4d4d4d', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stocks</div>
-              {stockResults.map((stock, i) => {
-                const livePrice = livePrices[stock.id] ?? stock.currentPrice;
-                const change = liveChanges[stock.id] ?? { change: stock.change, changePercent: stock.changePercent };
-                const isGain = change.changePercent >= 0;
-                const idx = i;
-                return (
-                  <button
-                    key={stock.id}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
-                    style={{ background: selected === idx ? 'rgba(246,246,9,0.1)' : 'transparent' }}
-                    onClick={() => { navigate(`/stocks/${stock.id}`); onClose(); }}
-                    onMouseEnter={() => setSelected(idx)}
-                  >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${stock.color}20`, border: `1px solid ${stock.color}30` }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: stock.color }}>{stock.symbol.slice(0, 2)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div style={{ fontSize: '13px', fontWeight: 500, color: '#e7fef6' }} className="truncate">{stock.companyName}</div>
-                      <div style={{ fontSize: '11px', color: '#808080' }}>{stock.symbol} · {stock.sector}</div>
-                    </div>
-                    <div className="text-right">
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#e7fef6' }}>${livePrice.toFixed(2)}</div>
-                      <div style={{ fontSize: '11px', color: isGain ? '#10b981' : '#f43f5e' }}>{isGain ? '+' : ''}{change.changePercent.toFixed(2)}%</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </>
+            <section className="command-palette-group">
+              <span className="command-palette-label">
+                STOCKS
+              </span>
+
+              {stockResults.map(
+                (stock, index) => {
+                  const currentPrice =
+                    livePrices[stock.id] ??
+                    stock.currentPrice;
+
+                  const change =
+                    liveChanges[stock.id] ?? {
+                      change: stock.change,
+                      changePercent:
+                        stock.changePercent,
+                    };
+
+                  const positive =
+                    change.changePercent >= 0;
+
+                  return (
+                    <button
+                      type="button"
+                      key={stock.id}
+                      className={`command-palette-item ${
+                        selected === index
+                          ? "command-palette-item-active"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        navigate(
+                          `/stocks/${stock.id}`
+                        );
+
+                        onClose();
+                      }}
+                      onMouseEnter={() =>
+                        setSelected(index)
+                      }
+                    >
+                      <span
+                        className="command-stock-logo"
+                        style={{
+                          color: stock.color,
+                          borderColor: `${stock.color}28`,
+                          background: `${stock.color}12`,
+                        }}
+                      >
+                        {stock.symbol.slice(0, 2)}
+                      </span>
+
+                      <span className="command-item-copy">
+                        <strong>
+                          {stock.companyName}
+                        </strong>
+
+                        <small>
+                          {stock.symbol} ·{" "}
+                          {stock.sector}
+                        </small>
+                      </span>
+
+                      <span className="command-stock-value">
+                        <strong className="sf-number">
+                          $
+                          {currentPrice.toFixed(
+                            2
+                          )}
+                        </strong>
+
+                        <small
+                          className={
+                            positive
+                              ? "positive"
+                              : "negative"
+                          }
+                        >
+                          {positive ? (
+                            <TrendingUp
+                              size={12}
+                            />
+                          ) : (
+                            <TrendingDown
+                              size={12}
+                            />
+                          )}
+
+                          {positive ? "+" : ""}
+                          {change.changePercent.toFixed(
+                            2
+                          )}
+                          %
+                        </small>
+                      </span>
+                    </button>
+                  );
+                }
+              )}
+            </section>
           )}
 
           {pageResults.length > 0 && (
-            <>
-              <div className="px-4 py-1.5 mt-1" style={{ fontSize: '11px', color: '#4d4d4d', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pages</div>
-              {pageResults.map((page, i) => {
-                const idx = stockResults.length + i;
-                return (
-                  <button
-                    key={page.path}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
-                    style={{ background: selected === idx ? 'rgba(246,246,9,0.1)' : 'transparent' }}
-                    onClick={() => { navigate(page.path); onClose(); }}
-                    onMouseEnter={() => setSelected(idx)}
-                  >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(246,246,9,0.1)', border: '1px solid rgba(246,246,9,0.2)' }}>
-                      <span style={{ color: '#f6f609' }}>{page.icon}</span>
-                    </div>
-                    <div style={{ fontSize: '13px', fontWeight: 500, color: '#e7fef6' }}>{page.label}</div>
-                    <span className="ml-auto" style={{ fontSize: '11px', color: '#4d4d4d' }}>Navigate →</span>
-                  </button>
-                );
-              })}
-            </>
+            <section className="command-palette-group">
+              <span className="command-palette-label">
+                PAGES
+              </span>
+
+              {pageResults.map(
+                (page, index) => {
+                  const resultIndex =
+                    stockResults.length +
+                    index;
+
+                  const Icon = page.icon;
+
+                  return (
+                    <button
+                      type="button"
+                      key={page.path}
+                      className={`command-palette-item ${
+                        selected === resultIndex
+                          ? "command-palette-item-active"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        navigate(page.path);
+                        onClose();
+                      }}
+                      onMouseEnter={() =>
+                        setSelected(
+                          resultIndex
+                        )
+                      }
+                    >
+                      <span className="command-page-icon">
+                        <Icon size={16} />
+                      </span>
+
+                      <span className="command-item-copy">
+                        <strong>
+                          {page.label}
+                        </strong>
+
+                        <small>
+                          Open workspace
+                        </small>
+                      </span>
+
+                      <ArrowRight
+                        size={14}
+                        className="command-item-arrow"
+                      />
+                    </button>
+                  );
+                }
+              )}
+            </section>
           )}
         </div>
 
-        <div className="px-4 py-2.5 border-t flex items-center gap-4" style={{ borderColor: '#333333' }}>
-          {[['↑↓', 'Navigate'], ['↵', 'Open'], ['Esc', 'Close']].map(([key, label]) => (
-            <div key={key} className="flex items-center gap-1.5">
-              <kbd style={{ background: '#333333', color: '#999999', padding: '1px 5px', borderRadius: '4px', fontSize: '11px' }}>{key}</kbd>
-              <span style={{ fontSize: '11px', color: '#4d4d4d' }}>{label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+        <footer className="command-palette-footer">
+          <span>
+            <kbd>↑↓</kbd>
+            Navigate
+          </span>
+
+          <span>
+            <kbd>Enter</kbd>
+            Open
+          </span>
+
+          <span>
+            <kbd>Esc</kbd>
+            Close
+          </span>
+        </footer>
+      </section>
     </div>
   );
 }

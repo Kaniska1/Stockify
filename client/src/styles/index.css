@@ -19,4 +19,5 @@
 @import "./fund-wallet-v2.css";
 @import "./notifications-v2.css";
 @import "./toasts-v2.css";
-@import "./global.css";
+@import "./globals.css";
+@import "./command-palette-v2.css";

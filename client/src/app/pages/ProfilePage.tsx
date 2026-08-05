@@ -4,7 +4,7 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
-
+import { getStockLogo } from "../lib/getStockLogo";
 import {
   AlertCircle,
   Camera,
