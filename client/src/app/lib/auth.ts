@@ -23,7 +23,7 @@ export const loginRequest = (
   emailOrUsername: string,
   password: string
 ) =>
-  api<AuthResponse>("/auth/login", {
+  api<AuthResponse>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({
       email: emailOrUsername,
@@ -37,7 +37,7 @@ export const signupRequest = (data: {
   username: string;
   password: string;
 }) =>
-  api<AuthResponse>("/auth/register", {
+  api<AuthResponse>("/api/auth/register", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -45,7 +45,7 @@ export const signupRequest = (data: {
 export const getCurrentUserRequest = (
   token: string
 ) =>
-  api<UserResponse>("/auth/me", {
+  api<UserResponse>("/api/auth/me", {
     token,
   });
 
@@ -58,7 +58,7 @@ export const updateProfileRequest = (
     >
   >
 ) =>
-  api<UserResponse>("/auth/profile", {
+  api<UserResponse>("/api/auth/profile", {
     method: "PATCH",
     token,
     body: JSON.stringify(updates),
@@ -69,7 +69,7 @@ export const changePasswordRequest = (
   currentPassword: string,
   newPassword: string
 ) =>
-  api<{ message: string }>("/auth/password", {
+  api<{ message: string }>("/api/auth/password", {
     method: "PATCH",
     token,
     body: JSON.stringify({
@@ -78,12 +78,14 @@ export const changePasswordRequest = (
     }),
   });
 
-  export const depositFundsRequest = (
+export const depositFundsRequest = (
   token: string,
   amount: number
 ) =>
-  api<UserResponse>('/auth/wallet/deposit', {
-    method: 'PATCH',
+  api<UserResponse>("/api/auth/wallet/deposit", {
+    method: "PATCH",
     token,
-    body: JSON.stringify({ amount }),
+    body: JSON.stringify({
+      amount,
+    }),
   });
