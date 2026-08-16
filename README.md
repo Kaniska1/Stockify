@@ -1,264 +1,247 @@
 <div align="center">
 
-# Stockify
+# 📈 Stockify
 
-### AI-Powered Stock Portfolio & Market Analysis Platform
+### AI-Powered Stock Market & Paper Trading Platform
 
-Real-time stock tracking, intelligent portfolio insights, AI-powered investment assistant, watchlists, live market data, and portfolio analytics — all in one modern platform.
+A full-stack investing workspace for exploring live markets, simulating trades, managing portfolios, and getting AI-powered investment insights.
 
+<br />
 
----
+[![Live Demo](https://img.shields.io/badge/🚀_LIVE_DEMO-Open_Stockify-8B5CF6?style=for-the-badge)](https://stockify-sm.vercel.app/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/Kaniska1/Stockify)
 
-![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)
-![React](https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react)
-![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js)
-![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=tailwindcss)
-![Gemini AI](https://img.shields.io/badge/Gemini-AI-8E75FF?style=for-the-badge&logo=google)
+<br />
+
+![React](https://img.shields.io/badge/React-19-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google_Gemini-AI-8E75FF?style=flat-square&logo=google&logoColor=white)
+
+<br />
+
+**[Launch Stockify →](https://stockify-sm.vercel.app/)**
+
+No installation required. A demo account is available directly from the login page.
 
 </div>
 
-<img width="1917" height="832" alt="Screenshot 2026-08-06 003730" src="https://github.com/user-attachments/assets/3e302214-8049-4406-b512-a6cb8d6a739c" />
+---
 
+<img width="1917" height="832" alt="Stockify" src="https://github.com/user-attachments/assets/3e302214-8049-4406-b512-a6cb8d6a739c" />
 
 ---
 
-# ✨ Overview
+## ✨ Overview
 
-Stockify is a full-stack stock portfolio management platform that enables users to monitor investments, manage portfolios, analyze market trends, and receive AI-powered investment insights.
+**Stockify** is a full-stack stock market management and paper-trading platform that brings market data, portfolio management, simulated trading, and AI-powered research into one focused investing workspace.
 
-Unlike traditional CRUD portfolio trackers, Stockify combines:
+Rather than being a simple stock-price dashboard or CRUD portfolio tracker, Stockify provides an end-to-end simulated investing experience.
 
-- 📊 Live Market Data
-- 🤖 AI Portfolio Analysis
-- 💬 AI Investment Assistant
-- 📈 Real-time Portfolio Tracking
-- ⭐ Watchlists
-- 🔔 Smart Notifications
-- 💼 Portfolio Analytics
+Users can:
+
+- 📈 Explore live stock market data
+- 💵 Buy and sell stocks using virtual funds
+- 💼 Build and track a persistent portfolio
+- 📊 Monitor profit, loss, holdings, and valuation
+- ⭐ Maintain personalized watchlists
+- 📜 Review complete transaction history
+- 🔔 Receive persistent account notifications
+- 🤖 Ask an AI investment research assistant
+- 🧠 Analyze portfolio diversification and risk with AI
+
+The application is fully deployed with a **React/Vite frontend on Vercel**, a **Node.js/Express API on Render**, and persistent data stored in **MongoDB Atlas**.
+
+> **Stockify is a paper-trading and educational application. No real money or securities are involved.**
+
+---
+
+## 🚀 Live Demo
+
+Stockify is deployed and can be used directly without cloning or installing the project.
+
+### **[→ Open Stockify](https://stockify-sm.vercel.app/)**
+
+A **Demo Login** is available on the authentication page, allowing visitors to explore the platform without creating a new account.
+
+| Service | Deployment |
+| :--- | :--- |
+| **Frontend** | Vercel |
+| **Backend API** | Render |
+| **Database** | MongoDB Atlas |
+| **Market Data** | Finnhub |
+| **AI** | Google Gemini |
 
 ---
 
 # 🚀 Features
 
-## 🔐 Authentication
+## 🔐 Authentication & Accounts
 
-- JWT Authentication
-- Secure Password Hashing
-- Protected Routes
-- User Profiles
-- Session Persistence
+Stockify implements a complete authentication system rather than relying on mocked frontend users.
 
----
+- JWT-based authentication
+- bcrypt password hashing
+- User registration
+- Email or username login
+- Demo account
+- Protected API routes
+- Persistent sessions
+- User profile management
+- Password updates
+- Virtual wallet management
 
-## 📈 Market
-
-- Live Stock Prices (Finnhub)
-- Market Movers
-- Price Change Tracking
-- Live Gain/Loss
-- Stock Search
-- Detailed Stock Pages
+Every new account receives virtual funds that can be used for paper trading.
 
 ---
 
-## 💼 Portfolio
+## 📈 Live Market Data
 
-- Buy & Sell Stocks
-- Portfolio Holdings
-- Average Purchase Price
-- Total Investment
-- Profit & Loss
-- Daily P&L
-- Portfolio Valuation
+Stockify integrates with **Finnhub** to retrieve real financial market data.
+
+Users can:
+
+- Search publicly traded companies
+- View live stock quotes
+- Explore market movers
+- Track daily price changes
+- View company information
+- Inspect individual stock pages
+- Monitor gains and losses
+- Add stocks directly to a watchlist
+
+Market information is presented through a focused interface designed to avoid the clutter of traditional trading dashboards.
+
+---
+
+## 💵 Paper Trading
+
+Stockify includes a simulated trading system backed by persistent portfolio and transaction data.
+
+Users can:
+
+- Buy stocks using virtual funds
+- Sell existing positions
+- Select quantities
+- Track execution prices
+- Monitor remaining wallet balance
+- Persist every transaction
+- Automatically update portfolio holdings
+
+This allows the application to simulate a simplified brokerage workflow without involving real financial transactions.
+
+---
+
+## 💼 Portfolio Management
+
+Trades automatically update the user's portfolio.
+
+The portfolio dashboard provides information such as:
+
+- Current holdings
+- Number of shares owned
+- Average purchase price
+- Total investment
+- Current position value
+- Profit and loss
+- Portfolio valuation
+- Available cash
+- Portfolio performance
+
+Portfolio information is stored persistently in MongoDB rather than existing only in frontend state.
 
 ---
 
 ## ⭐ Watchlist
 
-- Add Stocks
-- Remove Stocks
-- Live Price Updates
-- Quick Access
+Users can create a personalized collection of stocks they want to monitor.
+
+Features include:
+
+- Add stocks to watchlist
+- Remove stocks
+- Persistent watchlist storage
+- Live price information
+- Quick access to stock details
 
 ---
 
-## 🤖 AI Features
+## 🤖 AI Investment Assistant
 
-### AI Investment Assistant
+Stockify includes an AI-powered research assistant built using **Google Gemini**.
 
-Ask questions like:
+Instead of functioning as a generic chatbot, the assistant is designed around investing and financial education.
 
-- Should I diversify?
-- Explain P/E Ratio
-- What are the risks in my portfolio?
-- Compare two companies
-- Investment education
+Users can ask questions such as:
+
+> "What does P/E ratio mean?"
+
+> "What are the risks of concentrating my portfolio in technology?"
+
+> "How does diversification reduce risk?"
+
+> "Compare these companies."
+
+> "What should I look at before researching a stock?"
+
+The assistant provides contextual explanations and helps users understand market and portfolio concepts.
 
 ---
 
-### AI Portfolio Analyzer
+## 🧠 AI Portfolio Analyzer
 
-Automatically evaluates:
+The AI Portfolio Analyzer works with the user's actual Stockify portfolio rather than requiring them to manually describe their holdings.
 
-- Portfolio Health Score
-- Diversification Score
+It evaluates factors such as:
+
+- Portfolio Health
+- Diversification
 - Cash Utilization
 - Concentration Risk
-- Strengths
-- Weaknesses
-- Investment Suggestions
-- Risk Assessment
+- Overall Risk
+- Portfolio Strengths
+- Portfolio Weaknesses
+- Potential Areas for Improvement
 
-Powered by **Google Gemini AI**
+The portfolio data is transformed into structured context and analyzed using **Google Gemini**.
+
+> AI-generated output is intended for educational purposes and should not be interpreted as professional financial advice.
 
 ---
 
 ## 🔔 Notifications
 
-- Buy Notifications
-- Sell Notifications
-- System Alerts
+Stockify maintains persistent notifications for important account activity.
+
+Notifications can be generated for events such as:
+
+- Stock purchases
+- Stock sales
+- Wallet deposits
+- Account activity
+
+Notifications are stored in MongoDB and remain available between sessions.
 
 ---
 
-## 📜 Transactions
+## 📜 Transaction History
 
-- Complete Transaction History
-- Buy/Sell Records
-- Order Details
-- Timestamp Tracking
+Every simulated trade creates a transaction record.
 
----
+Users can review:
 
-# 🛠 Tech Stack
+- BUY / SELL operation
+- Stock symbol
+- Company name
+- Quantity
+- Execution price
+- Total transaction value
+- Transaction timestamp
 
-## Frontend
-
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- Lucide Icons
-- React Router
-- Sonner
-
-## Backend
-
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- JWT
-- bcrypt
-
-## APIs
-
-- Finnhub API
-- Google Gemini AI
-
----
-
-# 🧱 Architecture
-
-```text
-                    React Frontend
-                          │
-            ┌─────────────┼─────────────┐
-            │             │             │
-      Authentication   Portfolio      Markets
-            │             │             │
-            └─────────────┼─────────────┘
-                          │
-                    Express Backend
-                          │
-      ┌───────────────────┼───────────────────┐
-      │                   │                   │
-   MongoDB            Finnhub API        Gemini AI
-      │                   │                   │
- Users & Data       Live Market Data    AI Analysis
-```
-
----
-
-# 📂 Project Structure
-
-```text
-Stockify
-│
-├── client
-│   ├── src
-│   │   ├── app
-│   │   ├── components
-│   │   ├── context
-│   │   ├── hooks
-│   │   ├── lib
-│   │   ├── pages
-│   │   └── styles
-│
-├── server
-│   ├── controllers
-│   ├── middleware
-│   ├── models
-│   ├── routes
-│   ├── services
-│   ├── utils
-│   └── config
-```
-
----
-
-# ⚡ Getting Started
-
-## Clone Repository
-
-```bash
-git clone https://github.com/Kaniska1/Stockify.git
-```
-
-```bash
-cd Stockify
-```
-
----
-
-## Backend
-
-```bash
-cd server
-npm install
-npm run dev
-```
-
----
-
-## Frontend
-
-```bash
-cd client
-npm install
-npm run dev
-```
-
----
-
-# 🔑 Environment Variables
-
-## Backend
-
-```env
-PORT=
-
-MONGODB_URI=
-
-JWT_SECRET=
-
-GEMINI_API_KEY=
-GEMINI_MODEL=
-
-FINNHUB_API_KEY=
-```
+This creates a persistent audit trail of portfolio activity.
 
 ---
 
@@ -266,52 +249,408 @@ FINNHUB_API_KEY=
 
 <div align="center">
 
-<img width="48%" height="20%" alt="Screenshot 2026-08-06 003914" src="https://github.com/user-attachments/assets/56cbf3c3-6457-413d-bc67-d1d9e95c6f9f" />
-<img width="48%" height="20%" alt="Screenshot 2026-08-06 003941" src="https://github.com/user-attachments/assets/d9307ae2-ddaf-4e81-8fe9-a8e97b28f48e" />
-<img width="48%" height="20%" alt="image" src="https://github.com/user-attachments/assets/8dbfa2f7-9ff3-4145-9046-110d8b1abc18" />
-<img width="48%" height="20%" alt="Screenshot 2026-08-06 004012" src="https://github.com/user-attachments/assets/d41d2e9d-9540-4d8e-b7bc-3fec33a00cdc" />
-<img width="48%" height="20%" alt="Screenshot 2026-08-06 004116" src="https://github.com/user-attachments/assets/84211ab5-4c95-4eaf-aacc-537abb902542" />
-<img width="48%" height="20%" alt="Screenshot 2026-08-06 004150" src="https://github.com/user-attachments/assets/9aa6edfe-c8a4-4674-ba13-155698e0bbcd" />
+<img width="48%" alt="Stockify Dashboard" src="https://github.com/user-attachments/assets/56cbf3c3-6457-413d-bc67-d1d9e95c6f9f" />
+<img width="48%" alt="Stockify Market View" src="https://github.com/user-attachments/assets/d9307ae2-ddaf-4e81-8fe9-a8e97b28f48e" />
 
+<br />
+
+<img width="48%" alt="Stockify Portfolio" src="https://github.com/user-attachments/assets/8dbfa2f7-9ff3-4145-9046-110d8b1abc18" />
+<img width="48%" alt="Stockify Stock Details" src="https://github.com/user-attachments/assets/d41d2e9d-9540-4d8e-b7bc-3fec33a00cdc" />
+
+<br />
+
+<img width="48%" alt="Stockify AI" src="https://github.com/user-attachments/assets/84211ab5-4c95-4eaf-aacc-537abb902542" />
+<img width="48%" alt="Stockify Portfolio Analysis" src="https://github.com/user-attachments/assets/9aa6edfe-c8a4-4674-ba13-155698e0bbcd" />
 
 </div>
 
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+| Technology | Purpose |
+| :--- | :--- |
+| **React** | Component-based frontend |
+| **TypeScript** | Type-safe application development |
+| **Vite** | Development and production build tooling |
+| **React Router** | Client-side routing |
+| **Tailwind CSS** | Styling |
+| **Recharts** | Financial data visualization |
+| **Lucide React** | Interface icons |
+| **Sonner** | Toast notifications |
+
+## Backend
+
+| Technology | Purpose |
+| :--- | :--- |
+| **Node.js** | JavaScript runtime |
+| **Express.js** | REST API server |
+| **TypeScript** | Type-safe backend development |
+| **MongoDB** | Persistent application database |
+| **Mongoose** | MongoDB ODM and schema modelling |
+| **JWT** | Authentication |
+| **bcrypt** | Password hashing |
+
+## External Services
+
+| Service | Purpose |
+| :--- | :--- |
+| **Finnhub API** | Live stock market data |
+| **Google Gemini** | AI assistant and portfolio analysis |
+| **MongoDB Atlas** | Managed cloud database |
+| **Render** | Backend hosting |
+| **Vercel** | Frontend hosting |
 
 ---
 
-# 🚧 Upcoming Features
+# 🧱 Architecture
 
-- 📊 TradingView Charts
-- 📰 Live Market News
-- 📄 PDF Portfolio Reports
-- 🤖 AI Stock Research
-- 🔍 Advanced Stock Screener
-- 📈 Portfolio Allocation Charts
-- 🌙 Redesigned Premium UI
-- 📱 Progressive Web App
-- 🔔 Price Alerts
-- 🌍 Multi-Currency Support
+```text
+                              User
+                               │
+                               ▼
+                    ┌────────────────────┐
+                    │   React + Vite     │
+                    │      Vercel        │
+                    └─────────┬──────────┘
+                              │
+                         REST / JSON
+                              │
+                         JWT Bearer Auth
+                              │
+                              ▼
+                    ┌────────────────────┐
+                    │ Node.js + Express  │
+                    │       Render       │
+                    └─────────┬──────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              │               │               │
+              ▼               ▼               ▼
+       ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+       │   MongoDB   │ │   Finnhub   │ │   Gemini    │
+       │    Atlas    │ │     API     │ │     AI      │
+       └─────────────┘ └─────────────┘ └─────────────┘
+              │               │               │
+              ▼               ▼               ▼
+        Users, Trades,    Live Market      AI Research &
+        Portfolios &         Data         Portfolio Analysis
+        Notifications
+```
+
+---
+
+# 🔄 Application Flow
+
+```text
+                         Authentication
+                               │
+                               ▼
+                           Dashboard
+                               │
+          ┌────────────────────┼─────────────────────┐
+          │                    │                     │
+          ▼                    ▼                     ▼
+       Markets              Portfolio             AI Tools
+          │                    │                     │
+          ▼                    │              ┌──────┴──────┐
+    Stock Details              │              │             │
+       │      │                │              ▼             ▼
+       │      │                │         AI Assistant   Portfolio
+      BUY    SELL              │                         Analyzer
+       │      │                │
+       └──┬───┘                │
+          ▼                    │
+      Transaction ─────────────┘
+          │
+          ├──── Update Portfolio
+          ├──── Update Wallet
+          └──── Create Notification
+```
+
+---
+
+# 🌐 REST API
+
+The backend is organized into domain-specific REST endpoints.
+
+```text
+/api/auth
+/api/portfolio
+/api/transactions
+/api/watchlist
+/api/notifications
+/api/market
+/api/ai
+```
+
+Protected endpoints require an authentication token:
+
+```http
+Authorization: Bearer <JWT_TOKEN>
+```
+
+### Authentication
+
+```text
+POST    /api/auth/register
+POST    /api/auth/login
+GET     /api/auth/me
+PATCH   /api/auth/profile
+PATCH   /api/auth/password
+PATCH   /api/auth/wallet/deposit
+```
+
+The remaining routes handle portfolio operations, transactions, watchlists, notifications, market information, and AI functionality.
+
+---
+
+# 📂 Project Structure
+
+```text
+Stockify/
+│
+├── client/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── components/
+│   │   │   ├── context/
+│   │   │   ├── hooks/
+│   │   │   ├── lib/
+│   │   │   ├── pages/
+│   │   │   └── ...
+│   │   │
+│   │   └── styles/
+│   │
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── server/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── utils/
+│   │
+│   ├── server.ts
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── .gitignore
+└── README.md
+```
+
+---
+
+# 🔐 Security
+
+Stockify implements several security practices across the application:
+
+- Passwords hashed using **bcrypt**
+- JWT-based authentication
+- Protected backend routes
+- Authorization headers for authenticated requests
+- Environment-based secret management
+- Server-side request validation
+- MongoDB authentication
+- Production CORS configuration
+- Separation between frontend and backend credentials
+
+API keys, JWT secrets, and database credentials are never intended to be committed to the repository.
+
+---
+
+# 💻 Local Development
+
+> **You do not need to run Stockify locally to use it.**
+>
+> The complete application is available at **[stockify-sm.vercel.app](https://stockify-sm.vercel.app/)**.
+
+The following instructions are only for developers interested in running or modifying the source code.
+
+### Clone the repository
+
+```bash
+git clone https://github.com/Kaniska1/Stockify.git
+cd Stockify
+```
+
+### Install backend dependencies
+
+```bash
+cd server
+npm install
+```
+
+Create `server/.env`:
+
+```env
+PORT=5000
+
+MONGODB_URI=your_mongodb_connection_string
+
+JWT_SECRET=your_jwt_secret
+
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=your_gemini_model
+
+FINNHUB_API_KEY=your_finnhub_api_key
+```
+
+Start the backend:
+
+```bash
+npm run dev
+```
+
+### Install frontend dependencies
+
+Open another terminal:
+
+```bash
+cd client
+npm install
+```
+
+Optionally create `client/.env`:
+
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+Start the frontend:
+
+```bash
+npm run dev
+```
+
+Vite will display the local development URL in the terminal.
+
+---
+
+# 🚢 Deployment
+
+Stockify uses separate deployments for the frontend and backend.
+
+```text
+GitHub
+   │
+   ├──────────────► Vercel
+   │                 │
+   │                 └── React/Vite Frontend
+   │
+   └──────────────► Render
+                     │
+                     └── Node/Express API
+                              │
+                              ▼
+                         MongoDB Atlas
+```
+
+Production environment variables are configured independently on the relevant hosting platforms.
+
+### Production
+
+**Application**
+
+[https://stockify-sm.vercel.app/](https://stockify-sm.vercel.app/)
+
+**API**
+
+[https://stockify-api-xsuy.onrender.com/](https://stockify-api-xsuy.onrender.com/)
+
+---
+
+# 🧪 What This Project Demonstrates
+
+Stockify was built as more than a frontend stock dashboard.
+
+It demonstrates practical experience with:
+
+- Full-stack TypeScript development
+- REST API design
+- Authentication and authorization
+- MongoDB schema modelling
+- Persistent application state
+- Financial transaction workflows
+- Third-party API integration
+- AI integration with application context
+- Portfolio calculation logic
+- Protected frontend and backend routes
+- Responsive dashboard design
+- Production environment configuration
+- Separate frontend/backend deployments
+- Debugging differences between Windows development and Linux production environments
+
+---
+
+# 🗺️ Roadmap
+
+Potential future improvements include:
+
+- 📊 Advanced TradingView-style charts
+- 📰 Live financial news
+- 🔔 Custom stock price alerts
+- 🔍 Advanced stock screener
+- 📄 Exportable portfolio reports
+- 📈 Historical portfolio performance charts
+- 🧠 Deeper AI stock research
+- 📊 Sector and asset-allocation visualization
+- ⚡ Market-data caching
+- 🔄 Real-time updates using WebSockets/SSE
+- 🧪 Automated API and frontend testing
+- 🚀 Route-level code splitting and bundle optimization
+- 📱 Progressive Web App support
+- 🌍 Multi-currency portfolio support
+
+---
+
+# ⚠️ Disclaimer
+
+**Stockify is an educational and portfolio project.**
+
+The platform performs simulated trades using virtual funds and does **not** execute real securities transactions.
+
+Market information and AI-generated responses are provided for demonstration and educational purposes only. They should not be considered financial, investment, legal, or tax advice.
 
 ---
 
 # 🤝 Contributing
 
-Contributions are welcome.
+Contributions, suggestions, and bug reports are welcome.
 
-Feel free to fork the repository, create a feature branch, and submit a pull request.
+If you'd like to contribute:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Commit your work
+5. Open a pull request
 
 ---
 
 # 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the **MIT License**.
 
 ---
 
 <div align="center">
 
-### Built with ❤️ by Kaniska Mitra
+## 👨‍💻 Built by Kaniska Mitra
 
-⭐ Star the repository if you found it useful!
+Built as a full-stack exploration of **financial technology, backend architecture, real-time market data, and applied generative AI**.
+
+[![GitHub](https://img.shields.io/badge/GitHub-Kaniska1-181717?style=for-the-badge&logo=github)](https://github.com/Kaniska1)
+[![Stockify](https://img.shields.io/badge/Live-Stockify-8B5CF6?style=for-the-badge)](https://stockify-sm.vercel.app/)
+
+<br />
+
+**If you found Stockify interesting, consider giving the repository a ⭐**
 
 </div>
