@@ -21,7 +21,7 @@ const createToken = (userId: string): string => {
 };
 
 const formatUser = (user: {
-  id: string;
+  _id: unknown;
   name: string;
   email: string;
   username: string;
@@ -29,13 +29,17 @@ const formatUser = (user: {
   walletBalance: number;
   createdAt?: Date;
 }) => ({
-  id: user.id,
+  id: String(user._id),
+
   name: user.name,
   email: user.email,
   username: user.username,
   avatar: user.avatar,
   walletBalance: user.walletBalance,
-  createdAt: user.createdAt?.toISOString() ?? new Date().toISOString(),
+
+  createdAt:
+    user.createdAt?.toISOString() ??
+    new Date().toISOString(),
 });
 
 /**
@@ -277,18 +281,6 @@ export const updateProfile = async (
 
     await user.save();
 
-    await createNotification({
-      userId: user.id,
-      title: "Wallet credited",
-      message: `$${amount.toFixed(2)} was added to your Stockify wallet.`,
-      type: "WALLET",
-      link: "/profile",
-      metadata: {
-        amount,
-        walletBalance: user.walletBalance,
-      },
-    });
-
     return res.status(200).json({
       user: formatUser(user),
     });
@@ -387,6 +379,18 @@ export const depositFunds = async (
     );
 
     await user.save();
+
+    await createNotification({
+  userId: user.id,
+  title: "Wallet credited",
+  message: `$${amount.toFixed(2)} was added to your Stockify wallet.`,
+  type: "WALLET",
+  link: "/profile",
+  metadata: {
+    amount,
+    walletBalance: user.walletBalance,
+  },
+});
 
     return res.status(200).json({
       user: formatUser(user),

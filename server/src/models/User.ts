@@ -7,6 +7,9 @@ export interface IUser {
   password: string;
   avatar: string;
   walletBalance: number;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const UserSchema = new mongoose.Schema<IUser>(

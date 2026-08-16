@@ -8,6 +8,9 @@ export interface ITransaction {
   price: number;
   total: number;
   type: "BUY" | "SELL";
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const TransactionSchema = new mongoose.Schema<ITransaction>(
